@@ -1,0 +1,15 @@
+export const fmtUGX = (n: number) => `UGX ${Math.round(n).toLocaleString('en-UG')}`;
+export const fmtUSD = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const fmtMoney = (n: number, c: 'UGX' | 'USD') => (c === 'USD' ? fmtUSD(n) : fmtUGX(n));
+export const fmtKg = (n: number) => `${n.toLocaleString('en-UG', { maximumFractionDigits: 1 })} kg`;
+export const fmtNum = (n: number) => n.toLocaleString('en-UG');
+export const fmtPct = (n: number, signed = false) => `${signed && n > 0 ? '+' : ''}${n.toFixed(1)}%`;
+export const compact = (n: number) => (Math.abs(n) >= 1_000_000 ? `${(n / 1_000_000).toFixed(2)}M` : Math.abs(n) >= 1_000 ? `${Math.round(n / 1_000)}k` : `${Math.round(n)}`);
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const fmtDay = (day: string) => { const d = new Date(day + 'T00:00:00Z'); return `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`; };
+export const fmtDayShort = (day: string) => { const d = new Date(day + 'T00:00:00Z'); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`; };
+export const fmtDayLong = (day: string) => { const d = new Date(day + 'T00:00:00Z'); return `${DAYS[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+export const fmtTime = (iso: string) => { const m = iso.match(/T(\d{1,2}):(\d{2})/); return m ? `${m[1].padStart(2, '0')}:${m[2]}` : iso; };
+export const fmtDateTime = (iso: string) => `${fmtDayShort(iso.slice(0, 10))} ${fmtTime(iso)}`;
+export const initials = (name: string) => name.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();

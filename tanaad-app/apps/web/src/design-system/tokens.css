@@ -1,0 +1,223 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* Density: compact = mouse + keyboard workbench (default on desktop); touch = floor tablets and phones. */
+@custom-variant touch (&:where([data-density="touch"], [data-density="touch"] *));
+@custom-variant compact (&:where([data-density="compact"], [data-density="compact"] *));
+
+@theme {
+  --font-sans: "Inter Variable", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "Cascadia Mono", Consolas, monospace;
+
+  /* Tight, professional radii. Overrides Tailwind's scale so no screen can go bubbly. */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-3xl: 14px;
+  --radius-4xl: 16px;
+
+  /* brand */
+  --color-ink-950: #0b1d23;
+  --color-ink-900: #14333d;
+  --color-ink-800: #1d4451;
+  --color-ink-700: #2a5868;
+  --color-ink-600: #3b6d7e;
+  --color-ink-500: #52869a;
+  --color-ink-300: #9fbac4;
+  --color-ink-200: #c9d8dd;
+  --color-ink-100: #e4ecef;
+  --color-ink-50: #f1f5f6;
+  --color-paper-50: #fafbfb;
+  --color-paper-100: #f4f5f6;
+  --color-paper-200: #eceef0;
+  --color-paper-300: #dfe3e6;
+  --color-paper-400: #b9c0c5;
+  --color-amber-400: #f0a04b;
+  --color-amber-500: #d97e22;
+  --color-amber-600: #b5631e;
+  --color-amber-700: #8f4c15;
+  --color-ok-500: #1f8a55;
+  --color-ok-100: #e3f3ea;
+  --color-warn-500: #b7791f;
+  --color-warn-100: #fbf0d9;
+  --color-bad-500: #c2412f;
+  --color-bad-100: #fbe6e2;
+
+  --shadow-tile: 0 1px 2px rgb(16 24 40 / .04), 0 1px 3px rgb(16 24 40 / .05);
+  --shadow-raise: 0 2px 4px rgb(16 24 40 / .05), 0 8px 20px -8px rgb(16 24 40 / .16);
+  --shadow-pop: 0 2px 6px rgb(11 29 35 / .08), 0 12px 32px -8px rgb(11 29 35 / .22);
+  --shadow-float: 0 4px 12px rgb(11 29 35 / .10), 0 28px 64px -12px rgb(11 29 35 / .36);
+}
+
+:root {
+  /* surfaces */
+  --bg: #f2f4f7;
+  --chrome: #ffffff;          /* title bar */
+  /* the frame: sidebar and status bar wear the brand ink in both themes */
+  --side-bg: #10262e;
+  --side-bg-2: #163640;
+  --side-line: rgb(255 255 255 / .08);
+  --side-text: rgb(255 255 255 / .68);
+  --side-text-strong: #ffffff;
+  --side-text-dim: rgb(255 255 255 / .38);
+  --side-hover: rgb(255 255 255 / .07);
+  --side-active: rgb(255 255 255 / .12);
+  /* site identities */
+  --site-mats: #2a78d6; --site-bags: #1baf7a; --site-recycling: #eb6834; --site-group: #d97e22;
+  --hero-a: #10262e; --hero-b: #1d4451;
+  --surface: #ffffff;
+  --surface-2: #f8f9fa;
+  --surface-3: #eef0f3;
+  --hover: #f1f3f5;
+  --selected: #e6eef1;
+  --line: #e1e5e9;
+  --line-2: #cbd2d8;
+  /* text */
+  --text: #111c21;
+  --text-2: #46565e;
+  --text-3: #7a8890;
+  --text-4: #a3aeb4;
+  /* brand + accent */
+  --brand: #14333d;
+  --brand-hover: #1d4451;
+  --brand-contrast: #ffffff;
+  --accent: #d97e22;
+  --accent-strong: #a85a14;
+  --focus: #2a78d6;
+  /* reserved status */
+  --ok: #1f8a55; --ok-bg: #e3f3ea;
+  --warn: #a96a12; --warn-bg: #fbf0d9;
+  --bad: #c2412f; --bad-bg: #fbe6e2;
+  --info: #2a6fb5; --info-bg: #e5eff9;
+  /* chart series (validated categorical order; never cycled, never used for status) */
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+  --series-5: #e87ba4; --series-6: #008300; --series-7: #6250d6; --series-8: #e34948;
+  --chart-grid: #e6e9ec;
+  /* expense categories: fixed order wages, materials, spares, utilities, transport, food, other */
+  --cat-wages: #2a78d6; --cat-materials: #eb6834; --cat-spares: #1baf7a; --cat-utilities: #eda100; --cat-transport: #e87ba4; --cat-food: #6250d6; --cat-other: #b5631e;
+  /* density: compact */
+  --fs: 13px; --fs-sm: 12px; --fs-xs: 11px; --fs-lg: 14px;
+  --fs-title: 20px; --fs-kpi: 24px; --fs-hero: 32px;
+  --ctl-h: 32px; --ctl-h-sm: 26px; --ctl-h-lg: 38px;
+  --row-h: 38px;
+  --pad: 14px; --gap: 14px; --page-x: 24px; --page-y: 20px;
+  --touch: 30px;
+  --titlebar-h: 48px; --statusbar-h: 26px; --sidebar-w: 244px;
+  color-scheme: light;
+}
+[data-density="touch"] {
+  --fs: 15px; --fs-sm: 13px; --fs-xs: 12px; --fs-lg: 16px;
+  --fs-title: 22px; --fs-kpi: 26px; --fs-hero: 38px;
+  --ctl-h: 48px; --ctl-h-sm: 40px; --ctl-h-lg: 56px;
+  --row-h: 56px;
+  --pad: 14px; --gap: 12px; --page-x: 16px; --page-y: 14px;
+  --touch: 56px;
+  --titlebar-h: 52px;
+}
+[data-theme="dark"] {
+  --bg: #0b1114;
+  --chrome: #10181c;
+  --side-bg: #080d10;
+  --side-bg-2: #0f171b;
+  --hero-a: #0f1d23; --hero-b: #16323c;
+  --surface: #121b20;
+  --surface-2: #162127;
+  --surface-3: #1c2a31;
+  --hover: #18242b;
+  --selected: #1b3038;
+  --line: #22323a;
+  --line-2: #30444e;
+  --text: #e7edef;
+  --text-2: #a9bac1;
+  --text-3: #76898f;
+  --text-4: #51636a;
+  --brand: #dfe9ec;
+  --brand-hover: #ffffff;
+  --brand-contrast: #0b1d23;
+  --accent: #f0a04b;
+  --accent-strong: #f3b26a;
+  --focus: #5a9ee8;
+  --ok: #4cc088; --ok-bg: #12301f;
+  --warn: #e9b04e; --warn-bg: #33270f;
+  --bad: #ee7b6a; --bad-bg: #3a1a16;
+  --info: #6aa8e6; --info-bg: #12283c;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+  --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767;
+  --chart-grid: #22323a;
+  --cat-wages: #3987e5; --cat-materials: #d95926; --cat-spares: #199e70; --cat-utilities: #c98500; --cat-transport: #d55181; --cat-food: #9085e9; --cat-other: #c47a3a;
+  color-scheme: dark;
+}
+
+/* Base resets live in the base layer so Tailwind utilities always win over them. */
+@layer base {
+  html, body, #root { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: var(--fs); line-height: 1.45; -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "ss01", "tnum" 0; overflow: hidden; }
+  * { box-sizing: border-box; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { cursor: default; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; border-radius: 4px; }
+  ::selection { background: color-mix(in srgb, var(--focus) 28%, transparent); }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  p { margin: 0; }
+  table { font-size: inherit; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-4); background-clip: content-box; border: 2px solid transparent; }
+  ::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* Type scale as utilities so sizes follow density. Prefer these over text-[NNpx]. */
+@utility t-xs { font-size: var(--fs-xs); line-height: 1.35; }
+@utility t-sm { font-size: var(--fs-sm); line-height: 1.4; }
+@utility t-base { font-size: var(--fs); line-height: 1.45; }
+@utility t-lg { font-size: var(--fs-lg); line-height: 1.4; }
+@utility t-title { font-size: var(--fs-title); line-height: 1.25; font-weight: 600; letter-spacing: -0.01em; }
+@utility t-kpi { font-size: var(--fs-kpi); line-height: 1.1; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+@utility t-hero { font-size: var(--fs-hero); line-height: 1.05; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+@utility t-label { font-size: var(--fs-xs); line-height: 1.3; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
+/* Numbers: the UI face with tabular figures. Monospace is reserved for codes and IDs (use `code`). */
+@utility num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "cv11"; }
+@utility code { font-family: var(--font-mono); font-size: 0.94em; letter-spacing: -0.01em; }
+@utility tabular { font-variant-numeric: tabular-nums; }
+@utility ctl { height: var(--ctl-h); }
+@utility ctl-sm { height: var(--ctl-h-sm); }
+@utility ctl-lg { height: var(--ctl-h-lg); }
+@utility row-h { min-height: var(--row-h); }
+@utility touch { min-height: var(--touch); }
+@utility surface { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow-tile); }
+@utility surface-2 { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
+@utility surface-flat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: none; }
+/* Branded band used at the top of dashboards and on the sign-in and portal screens. */
+@utility hero { background: radial-gradient(1200px 400px at 85% -40%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%), linear-gradient(135deg, var(--hero-a), var(--hero-b)); color: #fff; border-radius: 12px; }
+@utility lift { transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease; &:hover { box-shadow: var(--shadow-raise); border-color: var(--line-2); } }
+@utility scrollbar-thin { scrollbar-width: thin; }
+@utility no-scrollbar { scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
+@utility app-drag { -webkit-app-region: drag; app-region: drag; }
+@utility app-no-drag { -webkit-app-region: no-drag; app-region: no-drag; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+@keyframes pop { 0% { transform: scale(.98); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+@keyframes fade { 0% { opacity: 0 } 100% { opacity: 1 } }
+@keyframes slide-up { 0% { transform: translateY(8px); opacity: 0 } 100% { transform: translateY(0); opacity: 1 } }
+@keyframes slide-left { 0% { transform: translateX(16px); opacity: 0 } 100% { transform: translateX(0); opacity: 1 } }
+@keyframes print-out { 0% { transform: translateY(-100%); clip-path: inset(100% 0 0 0) } 100% { transform: translateY(0); clip-path: inset(0 0 0 0) } }
+@keyframes live { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 55%, transparent) } 100% { box-shadow: 0 0 0 8px transparent } }
+.anim-pop { animation: pop .12s ease-out both }
+.anim-fade { animation: fade .12s ease-out both }
+.anim-up { animation: slide-up .16s ease-out both }
+.anim-left { animation: slide-left .16s ease-out both }
+.anim-print { animation: print-out .9s cubic-bezier(.2,.7,.2,1) both }
+.anim-alarm { animation: pulse-ring 1.2s ease-out infinite }
+.anim-live { animation: live 1.8s ease-in-out infinite }
+
+@media print {
+  body { overflow: visible; background: #fff; }
+  .no-print { display: none !important; }
+}
