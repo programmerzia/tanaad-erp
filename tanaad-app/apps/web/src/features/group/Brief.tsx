@@ -90,7 +90,7 @@ export function Brief() {
 
   return (
     <div>
-      <PageHeader eyebrow="Head Office" title="Morning brief"
+      <PageHeader eyebrow="Group HQ" title="Morning brief"
         meta={sentAt ? <Badge tone="ok" dot>Sent {fmtTime(sentAt)} (simulated)</Badge> : <Badge tone="neutral" dot>Not sent today</Badge>}
         subtitle="Five numbers per site on WhatsApp, and what needs you. Rendered now from live data so you can see exactly what will go out."
         actions={<Button variant="primary" icon={Send} disabled={sending} onClick={sendNow} hotkey="mod+enter" hotkeyLabel="Send the brief now">{sending ? 'Sending…' : 'Send now'}</Button>} />

@@ -10,7 +10,7 @@ import { BrandPanel, Logo } from './BrandPanel';
 
 export const emailOf = (u: User) => `${u.name.toLowerCase().replace(/[^a-z ]/g, '').trim().split(/\s+/).join('.')}@tanaad.co.ug`;
 const DEMO_PIN = '1234';
-const whereOf = (u: User) => { const sites = [...new Set(u.roles.map((r) => r.siteId).filter(Boolean))] as SiteCode[]; return sites.length ? sites.map((x) => SITES[x].shortName).join(' + ') : 'Head Office'; };
+const whereOf = (u: User) => { const sites = [...new Set(u.roles.map((r) => r.siteId).filter(Boolean))] as SiteCode[]; return sites.length ? sites.map((x) => SITES[x].shortName).join(' + ') : 'Group HQ'; };
 
 /**
  * Sign-in. Two ways in, matching how the sites work:

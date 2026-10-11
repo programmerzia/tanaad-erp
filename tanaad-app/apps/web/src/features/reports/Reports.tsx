@@ -206,7 +206,7 @@ export function Reports() {
 
         <div className="grid gap-[var(--gap)] md:grid-cols-2 xl:grid-cols-1 min-w-0">
           <Panel icon={AlertTriangle} title="Exceptions by kind" sub={ex.length ? `${ex.length} raised` : undefined} actions={<CsvButton onClick={exportExceptions} />}
-            footer={exRows.length ? <>{exOpen} still open across {exRows.length} kind{exRows.length === 1 ? '' : 's'}. Decisions are taken on the dashboard and at Head Office.</> : undefined}>
+            footer={exRows.length ? <>{exOpen} still open across {exRows.length} kind{exRows.length === 1 ? '' : 's'}. Decisions are taken on the dashboard and at Group HQ.</> : undefined}>
             {exRows.length === 0 ? <Empty title="No exceptions raised in this range" hint="A quiet period. The arithmetic found nothing to flag." />
               : exRows.map((r) => <Meter key={r.kind} tone={r.critical ? 'bad' : 'series'} label={KIND_LABEL[r.kind]} sub={`${r.open} open${r.critical ? ` · ${r.critical} critical` : ''}`} value={r.total} max={exMax} />)}
           </Panel>

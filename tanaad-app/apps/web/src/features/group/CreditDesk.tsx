@@ -136,7 +136,7 @@ export function CreditDesk() {
 
   return (
     <div>
-      <PageHeader eyebrow="Head Office" title="Credit desk" meta={<Badge tone={awaiting.length ? 'warn' : 'ok'} dot>{awaiting.length} awaiting approval</Badge>}
+      <PageHeader eyebrow="Group HQ" title="Credit desk" meta={<Badge tone={awaiting.length ? 'warn' : 'ok'} dot>{awaiting.length} awaiting approval</Badge>}
         subtitle="Export orders wait here until a CEO approves. Local orders never do: they are cash before delivery." />
 
       <div className="flex flex-col gap-[var(--gap)]">

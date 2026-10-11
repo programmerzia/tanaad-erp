@@ -1,10 +1,9 @@
 import type { Site } from '@tanaad/domain';
-import { COMPANY } from '@/config/company';
 
 export const mats: Site = {
   id: 'mats',
   name: 'Mats Factory',
-  legalName: COMPANY.name,
+  legalName: 'Tanaad · Mats factory',
   shortName: 'Mats',
   tagline: 'Woven mats · est. 2024 · largest site',
   currencyPrimary: 'UGX',

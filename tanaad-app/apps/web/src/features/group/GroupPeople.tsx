@@ -112,7 +112,7 @@ export function GroupPeople() {
 
   return (
     <div className="flex flex-col gap-[var(--gap)]">
-      <Hero icon={Users} eyebrow="Head Office · people" title="Group people" sub="Who is on the books, what they cost, who works across sites"
+      <Hero icon={Users} eyebrow="Group HQ · people" title="Group people" sub="Who is on the books, what they cost, who works across sites"
         actions={<>
           <Button variant="inverse" icon={Download} hotkey="e" onClick={exportCsv}>Export CSV</Button>
           <Button variant="accent" icon={RefreshCw} hotkey="r" hotkeyLabel="Renew the most urgent contract" disabled={!next} onClick={() => next && setRenewing({ engId: next.eng.id, name: next.person.fullName })}>Renew next</Button>

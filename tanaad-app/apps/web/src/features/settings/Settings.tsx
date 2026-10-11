@@ -77,7 +77,7 @@ export function Settings() {
               </div>
               <div className="grid gap-[var(--gap)]">
                 <RefEditor key={meta.key + site} meta={meta} site={site} canEdit={canEdit && (!meta.adminOnly || admin)} />
-                <Note tone="neutral">{meta.scope === 'group' ? 'This list is shared by the whole company. Only a Group Admin can change it.' : `This list belongs to ${SITES[site].name}. Other sites keep their own.`} Deactivated options disappear from the screens but stay on every record that used them.</Note>
+                <Note tone="neutral">{meta.scope === 'group' ? 'This list is shared by the whole group. Only a Group Admin can change it.' : `This list belongs to ${SITES[site].name}. Other sites keep their own.`} Deactivated options disappear from the screens but stay on every record that used them.</Note>
               </div>
             </div>
           )}
