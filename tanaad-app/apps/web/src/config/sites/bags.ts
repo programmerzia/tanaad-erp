@@ -1,10 +1,9 @@
 import type { Site } from '@tanaad/domain';
-import { COMPANY } from '@/config/company';
 
 export const bags: Site = {
   id: 'bags',
   name: 'Bags Factory',
-  legalName: COMPANY.name,
+  legalName: 'Tanaad Packages Ltd',
   shortName: 'Bags',
   tagline: 'Carrier bags · oldest site · best records',
   currencyPrimary: 'UGX',
@@ -28,5 +27,5 @@ export const bags: Site = {
   downtimeReasons: ['Power', 'Mechanical', 'No resin', 'Operator absent', 'Changeover', 'Other'],
   thresholds: { gateTolerancePct: 2, massGapPct: 2, cashVariance: 20_000, benchmarkPct: 80 },
   deliveryNoteSeriesStart: 4817,
-  toBeConfirmed: 'Process after extrusion to be confirmed with the bags factory. The roll sticker is confirmed and exact.',
+  toBeConfirmed: 'Process after extrusion to be confirmed with Tanaad Packages. The roll sticker is confirmed and exact.',
 };

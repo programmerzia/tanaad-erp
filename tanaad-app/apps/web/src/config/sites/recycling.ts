@@ -1,10 +1,9 @@
 import type { Site } from '@tanaad/domain';
-import { COMPANY } from '@/config/company';
 
 export const recycling: Site = {
   id: 'recycling',
   name: 'Recycling Plant',
-  legalName: COMPANY.name,
+  legalName: 'Tanaad · Recycling plant',
   shortName: 'Recycling',
   tagline: 'HDPE recycling · new · 14 t/day',
   currencyPrimary: 'UGX',

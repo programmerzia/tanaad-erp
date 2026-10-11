@@ -221,8 +221,8 @@ export function Cockpit() {
           <div className="flex items-center gap-3.5 min-w-0">
             <SiteMark site="group" size={48} className="rounded-xl max-sm:hidden" />
             <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-white/55">Head Office · {fmtDayLong(s.today)}</div>
-              <h1 className="text-[24px] max-sm:text-[21px] font-semibold tracking-[-0.02em] leading-tight">{COMPANY.name}</h1>
+              <div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-white/55">Group HQ · {fmtDayLong(s.today)}</div>
+              <h1 className="text-[24px] max-sm:text-[21px] font-semibold tracking-[-0.02em] leading-tight">{COMPANY.groupName}</h1>
               <div className="text-[12.5px] text-white/60 sm:truncate">{greet}, {user?.name.split(' ')[0] ?? 'there'}. {decisions ? `${plural(decisions, 'decision')} waiting for you` : 'Nothing is waiting for you'}{critical ? `, ${critical} critical` : ''}.</div>
             </div>
           </div>

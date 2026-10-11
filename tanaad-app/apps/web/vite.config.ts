@@ -16,7 +16,7 @@ export default defineConfig({
         id: '/',
         name: 'Tanaad Management System',
         short_name: 'Tanaad',
-        description: 'Tanaad Packages Limited: mats, bags and recycling in one system. Works offline on the factory floor.',
+        description: 'One system for the Tanaad group: mats, bags and recycling. Works offline on the factory floor.',
         lang: 'en',
         dir: 'ltr',
         start_url: '/',
