@@ -7,6 +7,9 @@ coverage
 *.log
 .DS_Store
 
+# Documentation is kept out of the repository for now (all docs folders, at any level).
+docs/
+
 # Client-confidential material. The remote is a PUBLIC repository, so these stay local.
 # Remove a line to track that file once the repository is private or the client has agreed.
 /docs/Tanaad System — R&D Briefing.pdf
