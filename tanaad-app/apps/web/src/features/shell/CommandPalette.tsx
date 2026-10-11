@@ -30,7 +30,7 @@ export function CommandPalette({ scope, site }: { scope: 'group' | 'site'; site:
     const out: Cmd[] = [];
     const tabs = ROLE_TABS[role] ?? [];
     if (scope === 'site') for (const n of visibleSiteNav(role, site)) out.push({ id: `nav:${n.to}`, title: n.label, sub: n.group ? `${SITES[site].shortName} · ${n.group}` : SITES[site].shortName, group: 'Go to', icon: n.icon, keys: n.keys, words: n.words, run: go(`/s/${site}/${n.to}`), rank: tabs.includes(n.to) ? 2 : 1 });
-    if (scope === 'group' || isGroupRole) for (const n of GROUP_NAV) out.push({ id: `gnav:${n.to}`, title: n.label, sub: 'Group HQ', group: scope === 'group' ? 'Go to' : 'Group HQ', icon: n.icon, keys: scope === 'group' ? n.keys : undefined, run: go(`/g/${n.to}`), rank: scope === 'group' ? 2 : 0 });
+    if (scope === 'group' || isGroupRole) for (const n of GROUP_NAV) out.push({ id: `gnav:${n.to}`, title: n.label, sub: 'Head Office', group: scope === 'group' ? 'Go to' : 'Head Office', icon: n.icon, keys: scope === 'group' ? n.keys : undefined, run: go(`/g/${n.to}`), rank: scope === 'group' ? 2 : 0 });
     if (isGroupRole || scope === 'site') SITE_LIST.forEach((x, i) => { if (scope === 'site' && x.id === site) return; if (!isGroupRole && !s.users.find((u) => u.id === s.session?.userId)?.roles.some((r) => r.siteId === x.id)) return; out.push({ id: `site:${x.id}`, title: `Switch to ${x.name}`, sub: x.tagline, group: 'Portals', icon: Building2, keys: `alt+${i + 1}`, run: go(`/s/${x.id}/${isGroupRole ? 'dashboard' : 'today'}`) }); });
     out.push(
       { id: 'sys:theme', title: prefs.theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme', group: 'Preferences', icon: Contrast, run: prefs.toggleTheme, words: 'dark light mode appearance' },

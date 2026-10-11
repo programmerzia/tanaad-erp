@@ -1,3 +1,4 @@
+import { COMPANY } from '@/config/company';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { Bell, Building2, ChevronRight, ChevronsUpDown, Cloud, CloudOff, Contrast, Download, Factory, HelpCircle, Keyboard, LayoutGrid, LogOut, Menu as MenuIcon, MonitorSmartphone, Moon, MoreHorizontal, PanelLeft, Recycle, RefreshCw, Search, ShoppingBag, Sun, X, type LucideIcon } from 'lucide-react';
@@ -67,14 +68,14 @@ export function AppShell({ scope }: { scope: 'group' | 'site' }) {
   const hub = hubs.find((h) => h.key === current?.hub);
   useEffect(() => { if (current?.hub) rememberHub(scopeKey, current.hub, current.href); }, [current, scopeKey]);
   useEffect(() => { setDrawer(false); main.current?.scrollTo({ top: 0 }); }, [loc.pathname]);
-  useEffect(() => { document.title = `${current?.label ?? 'Tanaad'} · ${scope === 'group' ? 'Group HQ' : site.name}`; }, [current, scope, site.name]);
+  useEffect(() => { document.title = `${current?.label ?? 'Tanaad'} · ${scope === 'group' ? 'Head Office' : site.name}`; }, [current, scope, site.name]);
 
   // "g x" jumps and Alt+digit portal switching. Registered imperatively because the list varies by role.
   useEffect(() => {
     const st = useStore.getState(); const access = portalsFor(st, st.session?.userId ?? '');
     const offs = items.filter((n) => n.keys).map((n) => registerHotkey({ keys: n.keys!, label: n.label, group: 'Go to', run: () => nav({ to: n.href as never }) }));
     access.sites.forEach((p, i) => { if (!p.roles.length) return; offs.push(registerHotkey({ keys: `alt+${i + 1}`, label: SITE_LIST[i].name, group: 'Portals', run: () => { if (!canGroup) st.signIn(st.session!.userId, p.roles[0], p.id); nav({ to: `/s/${p.id}/${canGroup ? 'dashboard' : 'today'}` as never }); } })); });
-    if (canGroup) offs.push(registerHotkey({ keys: 'alt+0', label: 'Group HQ', group: 'Portals', run: () => nav({ to: '/g/cockpit' as never }) }));
+    if (canGroup) offs.push(registerHotkey({ keys: 'alt+0', label: 'Head Office', group: 'Portals', run: () => nav({ to: '/g/cockpit' as never }) }));
     offs.push(registerHotkey({ keys: 'alt+p', label: 'All portals', group: 'Portals', run: () => nav({ to: '/portals' as never }) }));
     return () => offs.forEach((f) => f());
   }, [items, nav, canGroup]);
@@ -121,7 +122,7 @@ function Sidebar({ scope, items, pathname, collapsed, canGroup, embedded, onClos
 
   const wsItems: MenuItem[] = [
     ...access.sites.filter((p) => p.roles.length).map((p) => ({ label: SITE_LIST.find((x) => x.id === p.id)!.name, hint: canGroup ? undefined : roleLabel(p.roles[0]), keys: `alt+${['mats', 'bags', 'recycling'].indexOf(p.id) + 1}`, checked: scope === 'site' && p.id === site.id, onSelect: () => { if (!canGroup) s.signIn(s.session!.userId, p.roles[0], p.id); nav({ to: `/s/${p.id}/${canGroup ? 'dashboard' : 'today'}` as never }); } })),
-    ...(canGroup ? [{ label: 'Group HQ', keys: 'alt+0', checked: scope === 'group', onSelect: () => nav({ to: '/g/cockpit' as never }) }] : []),
+    ...(canGroup ? [{ label: 'Head Office', keys: 'alt+0', checked: scope === 'group', onSelect: () => nav({ to: '/g/cockpit' as never }) }] : []),
     { label: 'All portals', icon: LayoutGrid, keys: 'alt+p', divider: true, onSelect: () => nav({ to: '/portals' as never }) },
   ];
   const userItems: MenuItem[] = [
@@ -139,9 +140,9 @@ function Sidebar({ scope, items, pathname, collapsed, canGroup, embedded, onClos
       {/* Workspace */}
       <div className={cn('app-drag shrink-0 h-[var(--titlebar-h)] flex items-center border-b border-[var(--side-line)]', collapsed ? 'justify-center px-0' : 'px-2.5 gap-1')} style={{ paddingLeft: collapsed ? undefined : 'max(10px, env(titlebar-area-x, 0px))' }}>
         <Menu items={wsItems} width={236} className="flex-1 min-w-0" trigger={({ toggle }) => (
-          <button onClick={toggle} title={collapsed ? (scope === 'group' ? 'Group HQ' : site.name) : undefined} className={cn('w-full flex items-center gap-2.5 rounded-lg hover:bg-[var(--side-hover)] text-left', collapsed ? 'justify-center h-9' : 'px-1.5 h-10')}>
+          <button onClick={toggle} title={collapsed ? (scope === 'group' ? 'Head Office' : site.name) : undefined} className={cn('w-full flex items-center gap-2.5 rounded-lg hover:bg-[var(--side-hover)] text-left', collapsed ? 'justify-center h-9' : 'px-1.5 h-10')}>
             <span className="size-7 rounded-lg grid place-items-center shrink-0 text-white" style={{ background: SITE_COLOR[key] }}><WsIcon className="size-4" strokeWidth={2.25} /></span>
-            {!collapsed && <><span className="min-w-0 flex-1 leading-tight"><span className="block text-[13.5px] font-semibold text-[var(--side-text-strong)] truncate">{scope === 'group' ? 'Group HQ' : site.name}</span><span className="block text-[11px] text-[var(--side-text-dim)] truncate">{scope === 'group' ? 'Tanaad Group' : site.legalName}</span></span><ChevronsUpDown className="size-3.5 text-[var(--side-text-dim)] shrink-0" /></>}
+            {!collapsed && <><span className="min-w-0 flex-1 leading-tight"><span className="block text-[13.5px] font-semibold text-[var(--side-text-strong)] truncate">{scope === 'group' ? 'Head Office' : site.name}</span><span className="block text-[11px] text-[var(--side-text-dim)] truncate">{scope === 'group' ? COMPANY.name : site.legalName}</span></span><ChevronsUpDown className="size-3.5 text-[var(--side-text-dim)] shrink-0" /></>}
           </button>
         )} />
         {embedded && <button onClick={onClose} aria-label="Close menu" className="size-9 grid place-items-center rounded-lg hover:bg-[var(--side-hover)]"><X className="size-4" /></button>}
@@ -202,7 +203,7 @@ function TitleBar({ scope, current, hubLabel, desktop, onMenu }: { scope: 'group
       <IconButton icon={desktop ? PanelLeft : MenuIcon} label={desktop ? 'Toggle sidebar' : 'Menu'} onClick={onMenu} className="app-no-drag" />
       <nav className="app-no-drag flex items-center gap-1.5 min-w-0 t-base pl-1" aria-label="Breadcrumb">
         <span className="size-2 rounded-[3px] shrink-0" style={{ background: SITE_COLOR[key] }} />
-        <span className={cn('whitespace-nowrap', current ? 'text-[var(--text-3)] hidden md:inline' : 'font-semibold')}>{scope === 'group' ? 'Group HQ' : site.name}</span>
+        <span className={cn('whitespace-nowrap', current ? 'text-[var(--text-3)] hidden md:inline' : 'font-semibold')}>{scope === 'group' ? 'Head Office' : site.name}</span>
         {current && desktop && hubLabel && <><ChevronRight className="size-3.5 text-[var(--text-4)] shrink-0" /><span className="text-[var(--text-3)] whitespace-nowrap">{hubLabel}</span></>}
         {current && <><ChevronRight className="size-3.5 text-[var(--text-4)] shrink-0 hidden md:block" /><span className="font-semibold whitespace-nowrap">{current.label}</span></>}
       </nav>
@@ -253,7 +254,7 @@ function StatusBar({ scope }: { scope: 'group' | 'site' }) {
         <Seg>{kind === 'day' ? 'Day' : 'Night'} shift {shift?.starts}–{shift?.ends}</Seg>
         <Seg>{fmtDayLong(s.today)}</Seg>
         <Seg title="Today's cash page">{cd ? `Cash day ${cd.status}` : 'No cash day'}</Seg>
-      </> : <><Seg><Building2 className="size-3" />Tanaad Group</Seg><Seg>{fmtDayLong(s.today)}</Seg><Seg>USD 1 = UGX {s.fx.toLocaleString()}</Seg></>}
+      </> : <><Seg><Building2 className="size-3" />{COMPANY.name}</Seg><Seg>{fmtDayLong(s.today)}</Seg><Seg>USD 1 = UGX {s.fx.toLocaleString()}</Seg></>}
       <span className="flex-1" />
       {pwa.canInstall && <Seg onClick={() => void pwa.install()} title="Install as a desktop app"><Download className="size-3" />Install app</Seg>}
       {pwa.updateReady && <Seg onClick={pwa.applyUpdate}><RefreshCw className="size-3" />Update ready</Seg>}

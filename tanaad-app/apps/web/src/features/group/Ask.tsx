@@ -142,7 +142,7 @@ export function Ask() {
 
   return (
     <div>
-      <PageHeader eyebrow="Group HQ" title="Ask the business" subtitle="Plain questions, answered with a number and the records behind it."
+      <PageHeader eyebrow="Head Office" title="Ask the business" subtitle="Plain questions, answered with a number and the records behind it."
         meta={<><Badge tone="info"><Lock className="size-3" />Read-only</Badge><Badge tone="neutral"><ShieldCheck className="size-3" />Cites records</Badge></>} />
       <div className="grid gap-[var(--gap)] items-start xl:grid-cols-[minmax(0,1fr)_340px]">
         <Panel icon={MessageSquareText} title="Conversation" sub={msgs.length ? `${msgs.length / 2} question${msgs.length === 2 ? '' : 's'} · ${fmtNum(cited)} records cited` : 'nothing asked yet'} pad={false}

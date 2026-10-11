@@ -261,7 +261,7 @@ export function Approvals() {
 
   return (
     <div>
-      <PageHeader eyebrow="Group HQ" title="Approvals"
+      <PageHeader eyebrow="Head Office" title="Approvals"
         meta={<><Badge tone={allOpen.length ? 'warn' : 'ok'} dot>{allOpen.length} open</Badge>{critical > 0 && <Badge tone="bad" dot>{critical} critical</Badge>}</>}
         subtitle="Every open exception across the three sites, one decision each. Decisions are written to the audit feed with your name and device."
         tabs={<Tabs variant="underline" value={tab} onChange={(v) => { setTab(v); setArmed(null); }} tabs={[{ value: 'open', label: 'Open', count: allOpen.length }, { value: 'decided', label: 'Decided today', count: decidedAll.length }]} />} />

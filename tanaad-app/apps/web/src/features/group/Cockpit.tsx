@@ -1,3 +1,4 @@
+import { COMPANY } from '@/config/company';
 import { useRef, useState, type ReactNode } from 'react';
 import { Activity, AlertTriangle, BarChart3, Bell, Boxes, ChevronRight, Factory, Flame, History, Hourglass, Inbox, Landmark, MessageSquareText, PackageCheck, Recycle, Scale, ShieldCheck, Siren, Truck, Users, Wallet, type LucideIcon } from 'lucide-react';
 import type { ShiftKind, Site, SiteCode } from '@tanaad/domain';
@@ -220,8 +221,8 @@ export function Cockpit() {
           <div className="flex items-center gap-3.5 min-w-0">
             <SiteMark site="group" size={48} className="rounded-xl max-sm:hidden" />
             <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-white/55">Group HQ · {fmtDayLong(s.today)}</div>
-              <h1 className="text-[24px] max-sm:text-[21px] font-semibold tracking-[-0.02em] leading-tight">Tanaad Group</h1>
+              <div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-white/55">Head Office · {fmtDayLong(s.today)}</div>
+              <h1 className="text-[24px] max-sm:text-[21px] font-semibold tracking-[-0.02em] leading-tight">{COMPANY.name}</h1>
               <div className="text-[12.5px] text-white/60 sm:truncate">{greet}, {user?.name.split(' ')[0] ?? 'there'}. {decisions ? `${plural(decisions, 'decision')} waiting for you` : 'Nothing is waiting for you'}{critical ? `, ${critical} critical` : ''}.</div>
             </div>
           </div>
