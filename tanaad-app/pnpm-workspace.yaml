@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - packages/*
+minimumReleaseAgeExclude:
+  - '@tanstack/history@1.162.5'
+  - '@tanstack/react-router@1.170.42'
+  - '@tanstack/router-core@1.171.35'
+  - lucide-react@1.55.0

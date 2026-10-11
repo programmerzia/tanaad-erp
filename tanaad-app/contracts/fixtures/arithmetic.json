@@ -1,0 +1,18 @@
+{
+  "gate": [
+    { "name": "exact", "input": { "expectedKg": 5060, "actualKg": 5060, "tolerancePct": 2, "scannedBundles": 150, "orderedBundles": 150 }, "expected": "pass" },
+    { "name": "edge of tolerance", "input": { "expectedKg": 1000, "actualKg": 980, "tolerancePct": 2, "scannedBundles": 10, "orderedBundles": 10 }, "expected": "pass" },
+    { "name": "just over tolerance", "input": { "expectedKg": 1000, "actualKg": 979, "tolerancePct": 2, "scannedBundles": 10, "orderedBundles": 10 }, "expected": "hold" },
+    { "name": "weight ok but a bundle unscanned", "input": { "expectedKg": 1000, "actualKg": 1000, "tolerancePct": 2, "scannedBundles": 9, "orderedBundles": 10 }, "expected": "hold" },
+    { "name": "rwanda 200 short", "input": { "expectedKg": 5060, "actualKg": 4420, "tolerancePct": 2, "scannedBundles": 140, "orderedBundles": 150 }, "expected": "hold" }
+  ],
+  "massBalance": [
+    { "name": "balanced", "input": { "kgIn": 2500, "kgOut": 2250, "wipDeltaKg": 120, "wasteKg": 180, "allowedLossPct": 2 }, "expected": "balanced" },
+    { "name": "explainable", "input": { "kgIn": 2500, "kgOut": 2300, "wipDeltaKg": 0, "wasteKg": 120, "allowedLossPct": 2 }, "expected": "explainable" },
+    { "name": "missing", "input": { "kgIn": 2500, "kgOut": 2100, "wipDeltaKg": 0, "wasteKg": 50, "allowedLossPct": 2 }, "expected": "missing" }
+  ],
+  "cashClose": [
+    { "name": "18 August page", "input": { "opening": 1200000, "sales": 4500000, "receipts": 0, "expenses": 2382000, "wages": 1068000, "counted": 2250000 }, "expected": 0 },
+    { "name": "short by 10,000", "input": { "opening": 1200000, "sales": 4500000, "receipts": 0, "expenses": 2382000, "wages": 1068000, "counted": 2240000 }, "expected": -10000 }
+  ]
+}

@@ -1,0 +1,16 @@
+# dependencies and build output
+node_modules
+dist
+dev-dist
+.vite
+coverage
+*.log
+.DS_Store
+
+# Client-confidential material. The remote is a PUBLIC repository, so these stay local.
+# Remove a line to track that file once the repository is private or the client has agreed.
+/docs/Tanaad System — R&D Briefing.pdf
+/docs/pdd/
+/TANAAD_SOLUTION_PROPOSAL.md
+/TANAAD_SYSTEM_MODULES_AND_FEATURES.md
+/TANAAD_DEMO_BUILD_BRIEF.md
