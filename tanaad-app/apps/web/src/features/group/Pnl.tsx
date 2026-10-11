@@ -1,3 +1,4 @@
+import { COMPANY } from '@/config/company';
 import { useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, BarChart3, BookCheck, Calculator, Download, Layers, Percent, PieChart, Printer, Receipt, Scale, TrendingUp, Wallet } from 'lucide-react';
 import type { ExpenseCategory, SiteCode } from '@tanaad/domain';
@@ -90,7 +91,7 @@ export function Pnl() {
     const head = ['Line', ...SITE_LIST.map((x) => `${x.shortName} UGX`), 'Group UGX', `Group USD @ ${fx}`];
     const line = (label: string, f: (b: Books) => number) => [label, ...rows.map((r) => Math.round(f(r))), Math.round(f(total)), Math.round(f(total) / fx)];
     downloadCsv(`tanaad-pnl-${s.today}-${n}d.csv`, [
-      [`Tanaad group P&L`, meta.long, `to ${s.today}`], head,
+      [`${COMPANY.name} P&L`, meta.long, `to ${s.today}`], head,
       line('Sales', (b) => b.sales), ...EXPENSE_CATEGORIES.map((c) => line(label(c), (b) => b.out[c])), line('Total costs', (b) => b.totalOut), line('Net', (b) => b.net),
       ['Margin %', ...rows.map((r) => marginOf(r).toFixed(1)), margin.toFixed(1), ''],
       ['Basis', ...rows.map((r) => (r.provisional ? `provisional: ${r.openDays.join(' ')} open` : 'closed days only')), anyProvisional ? 'provisional' : 'closed days only', ''],
@@ -130,7 +131,7 @@ export function Pnl() {
 
   return (
     <div className="flex flex-col gap-[var(--gap)]">
-      <Hero icon={BarChart3} eyebrow="Group HQ · finance" title="P&L and unit costs" sub={`${meta.long[0].toUpperCase()}${meta.long.slice(1)} · USD at ${fmtNum(fx)}`}
+      <Hero icon={BarChart3} eyebrow="Head Office · finance" title="P&L and unit costs" sub={`${meta.long[0].toUpperCase()}${meta.long.slice(1)} · USD at ${fmtNum(fx)}`}
         actions={<>
           <Button variant="inverse" icon={Printer} hotkey="p" onClick={print}>Print</Button>
           <Button variant="accent" icon={Download} hotkey="e" onClick={exportCsv}>Export CSV</Button>

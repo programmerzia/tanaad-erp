@@ -1,3 +1,4 @@
+import { COMPANY } from '@/config/company';
 import { Keyboard, ShieldCheck, WifiOff } from 'lucide-react';
 
 /** Decorative woven pattern: a nod to the mats, drawn as crossing bands. Purely ornamental. */
@@ -35,8 +36,8 @@ export function BrandPanel() {
       <WeavePattern className="absolute inset-0 w-full h-full text-white/[0.055]" />
       <div className="relative"><Logo onDark size={36} /></div>
       <div className="relative">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 h-7 text-[12px] text-white/75 mb-5"><span className="size-1.5 rounded-full bg-[var(--color-amber-400)] anim-live" />Mats · Bags · Recycling · Group HQ</div>
-        <h1 className="text-[38px] leading-[1.08] font-semibold tracking-[-0.025em] max-w-[15ch]">One group. Three operations. <span className="text-[var(--color-amber-400)]">One set of numbers.</span></h1>
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 h-7 text-[12px] text-white/75 mb-5"><span className="size-1.5 rounded-full bg-[var(--color-amber-400)] anim-live" />Mats · Bags · Recycling · Head Office</div>
+        <h1 className="text-[38px] leading-[1.08] font-semibold tracking-[-0.025em] max-w-[15ch]">One company. Three operations. <span className="text-[var(--color-amber-400)]">One set of numbers.</span></h1>
         <p className="mt-4 text-[15px] leading-relaxed text-white/65 max-w-[44ch]">Every kilogram weighed twice, every shilling in a category, every change on record. Built for the factory floor and the owner's phone alike.</p>
         <div className="mt-9 grid gap-3 max-w-[420px]">
           {[
@@ -51,7 +52,7 @@ export function BrandPanel() {
           ))}
         </div>
       </div>
-      <div className="relative flex items-center justify-between text-[12px] text-white/40"><span>Tanaad Group · Kampala, Uganda</span><span>v0.2 demo · seeded from the August 2026 site visit</span></div>
+      <div className="relative flex items-center justify-between text-[12px] text-white/40"><span>{COMPANY.name} · {COMPANY.location}</span><span>v0.2 demo · seeded from the August 2026 site visit</span></div>
     </div>
   );
 }

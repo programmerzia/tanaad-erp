@@ -46,15 +46,15 @@ export function AuditFeed() {
   const byKind = tally(rows, (a) => a.kind).slice(0, 7); const byActor = tally(rows, (a) => a.actorName).slice(0, 5); const bySession = tally(s.events, (e) => e.type).slice(0, 6);
   const perDay = Array.from({ length: 10 }, (_, i) => { const d = addDays(s.today, i - 9); return s.audit.filter((a) => a.at.startsWith(d)).length; });
   const flagPerDay = (f: Flag) => Array.from({ length: 10 }, (_, i) => { const d = addDays(s.today, i - 9); return s.audit.filter((a) => a.at.startsWith(d) && a.flag === f).length; });
-  const siteSegments = [...SITE_LIST.map((x) => ({ label: x.name, value: rows.filter((a) => a.siteId === x.id).length, color: SITE_COLOR[x.id] })), { label: 'Group HQ', value: rows.filter((a) => !a.siteId).length, color: SITE_COLOR.group }];
+  const siteSegments = [...SITE_LIST.map((x) => ({ label: x.name, value: rows.filter((a) => a.siteId === x.id).length, color: SITE_COLOR[x.id] })), { label: 'Head Office', value: rows.filter((a) => !a.siteId).length, color: SITE_COLOR.group }];
   const event = inspect ? s.events.find((e) => e.type === inspect.kind && e.occurredAt === inspect.at) : undefined;
 
-  const exportCsv = () => downloadCsv(`audit-feed-${s.today}.csv`, ['When', 'Site', 'Kind', 'Flag', 'Summary', 'Reason', 'Who', 'Actor id', 'Device', 'Line id'], rows.map((a) => [a.at, a.siteId ? SITES[a.siteId].name : 'Group HQ', a.kind, a.flag ?? 'normal', a.summary, a.reason, a.actorName, a.actorId, a.deviceId, a.id]));
+  const exportCsv = () => downloadCsv(`audit-feed-${s.today}.csv`, ['When', 'Site', 'Kind', 'Flag', 'Summary', 'Reason', 'Who', 'Actor id', 'Device', 'Line id'], rows.map((a) => [a.at, a.siteId ? SITES[a.siteId].name : 'Head Office', a.kind, a.flag ?? 'normal', a.summary, a.reason, a.actorName, a.actorId, a.deviceId, a.id]));
   useHotkey('c', () => setFlag((f) => (f === 'corrections' ? 'all' : 'corrections')), { label: 'Show edits and reopenings only' });
 
   return (
     <div>
-      <PageHeader eyebrow="Group HQ" title="Audit feed" meta={<Badge tone="ok"><Lock className="size-3" />Append-only</Badge>}
+      <PageHeader eyebrow="Head Office" title="Audit feed" meta={<Badge tone="ok"><Lock className="size-3" />Append-only</Badge>}
         subtitle="Who changed what, where, from which device, and why. Nothing in this feed can be deleted: a correction adds a new line, it never erases the old one."
         actions={<Button icon={Download} hotkey="e" hotkeyLabel="Export the feed as CSV" onClick={exportCsv}>Export</Button>} />
 
@@ -140,7 +140,7 @@ export function AuditFeed() {
               <KV k="Who" v={<span className="inline-flex items-center gap-1.5"><Avatar name={inspect.actorName} size={18} />{inspect.actorName}</span>} />
               <KV k="Actor id" v={<span className="code">{inspect.actorId}</span>} />
               <KV k="Device" v={<span className="code">{inspect.deviceId}</span>} />
-              <KV k="Where" v={inspect.siteId ? SITES[inspect.siteId].name : 'Group HQ'} />
+              <KV k="Where" v={inspect.siteId ? SITES[inspect.siteId].name : 'Head Office'} />
               <KV k="Event type" v={<span className="code">{inspect.kind}</span>} />
               <KV k="Line id" v={<span className="code">{inspect.id}</span>} />
               <KV k="Sync" v={event ? <Badge tone={event.synced ? 'ok' : 'warn'} dot>{event.synced ? 'Synced' : 'Waiting in the outbox'}</Badge> : <Badge tone="ok" dot>Synced</Badge>} />

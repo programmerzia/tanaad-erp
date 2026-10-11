@@ -1,3 +1,4 @@
+import { COMPANY } from '@/config/company';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowRight, Building2, Factory, Lock, LogOut, Recycle, ShoppingBag, type LucideIcon } from 'lucide-react';
@@ -30,7 +31,7 @@ export function Portals() {
 
   const cards = useMemo(() => {
     const out: { id: PortalId; name: string; legal: string; tagline: string; roles: Role[]; open: boolean }[] = [];
-    out.push({ id: 'group', name: 'Group HQ', legal: 'Tanaad Group', tagline: 'All three sites on one screen', roles: access.group && access.groupRole ? [access.groupRole] : [], open: access.group });
+    out.push({ id: 'group', name: 'Head Office', legal: COMPANY.name, tagline: 'All three sites on one screen', roles: access.group && access.groupRole ? [access.groupRole] : [], open: access.group });
     for (const p of access.sites) out.push({ id: p.id, name: SITES[p.id].name, legal: SITES[p.id].legalName, tagline: SITES[p.id].tagline.split(' · ').slice(1).join(' · '), roles: p.roles, open: p.roles.length > 0 });
     return out;
   }, [access]);
