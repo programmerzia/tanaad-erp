@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Activity, AlertCircle, AlertTriangle, ArrowRight, Boxes, CheckCircle2, Circle, CircleDot, LayoutDashboard, Scale, Users, Wallet } from 'lucide-react';
+import { Activity, AlertCircle, AlertTriangle, ArrowRight, Boxes, CheckCircle2, Circle, CircleDot, Factory, LayoutDashboard, Scale, Users, Wallet } from 'lucide-react';
 import type { Role } from '@tanaad/domain';
 import { contractState } from '@tanaad/domain';
 import { useStore, type AppState } from '@/data/store';
@@ -123,20 +123,20 @@ export function Today() {
         </div>
         <div className="flex flex-wrap items-center gap-2.5 ml-auto">
           {countable > 0 && <div className="flex items-center gap-2.5 mr-1 [&_circle:first-child]:stroke-white/15"><Donut size={52} thickness={6} center={<span className="text-white text-[13px]">{done}/{countable}</span>} segments={[{ label: 'Done', value: done, color: 'var(--color-amber-400)' }, { label: 'Open', value: Math.max(0, countable - done), color: 'rgb(255 255 255 / .18)' }]} /><div className="leading-tight"><div className="text-[13px] font-medium">Shift steps</div><div className="text-[11.5px] text-white/55">{done === countable ? 'all done' : `${countable - done} remaining`}</div></div></div>}
-          <Button variant="inverse" icon={LayoutDashboard} onClick={() => go.site('dashboard')}>Factory Dashboard</Button>
+          <Button variant="inverse" icon={Factory} onClick={() => go.site('reports/production')}>Production Report</Button>
           {nextTask && <Button variant="accent" onClick={() => go.site(nextTask.to)}>{nextTask.cta}</Button>}
         </div>
       </section>
       {site.toBeConfirmed && (role === 'supervisor' || role === 'site_manager') && <Note tone="warn">{site.toBeConfirmed}</Note>}
 
       <KpiStrip>
-        <Stat label={`On ${kind} shift`} icon={Users} accent="var(--series-1)" value={<CountUp value={hc.total} />} sub={`${hc.present} full · ${hc.half} half day`} spark={past.map((d) => d.headcount)} onClick={() => go.site('people/attendance')} />
-        <Stat label="Machines not logged" icon={Activity} accent="var(--series-7)" value={<CountUp value={notLogged} />} tone={notLogged ? 'bad' : 'neutral'} sub={below ? `${below} below benchmark` : 'Benchmarks met so far'} spark={past.map((d) => d.units)} sparkColor="var(--series-7)" onClick={() => go.site('production/wall')} />
-        <Stat label="Cash expected" icon={Wallet} accent="var(--series-2)" value={cash ? <CountUp value={cash.expectedClosing} format={compact} /> : '—'} sub={cash ? `UGX · day ${cd?.status}` : 'No cash day'} spark={past.map((d) => d.closing)} onClick={() => go.site('cash')} />
+        <Stat label={`On ${kind} shift`} icon={Users} accent="var(--series-1)" value={<CountUp value={hc.total} />} sub={`${hc.present} full · ${hc.half} half day`} spark={past.map((d) => d.headcount)} onClick={() => go.site('reports/attendance')} />
+        <Stat label="Machines not logged" icon={Activity} accent="var(--series-7)" value={<CountUp value={notLogged} />} tone={notLogged ? 'bad' : 'neutral'} sub={below ? `${below} below benchmark` : 'Benchmarks met so far'} spark={past.map((d) => d.units)} sparkColor="var(--series-7)" onClick={() => go.site('reports/production')} />
+        <Stat label="Cash expected" icon={Wallet} accent="var(--series-2)" value={cash ? <CountUp value={cash.expectedClosing} format={compact} /> : '—'} sub={cash ? `UGX · day ${cd?.status}` : 'No cash day'} spark={past.map((d) => d.closing)} onClick={() => go.site('reports/cash')} />
         {site.id === 'recycling'
-          ? <Stat label="Intake today" icon={Scale} accent="var(--series-5)" value={<><CountUp value={Math.round(intakeToday(s, s.today).reduce((t, d) => t + d.netKg, 0))} /><span className="t-base text-[var(--text-3)] font-medium"> kg</span></>} sub={`${intakeToday(s, s.today).length} deliveries`} onClick={() => go.site('production/intake')} />
-          : <Stat label="In stock" icon={Boxes} accent="var(--series-5)" value={<CountUp value={stock.reduce((t, r) => t + r.bundles, 0)} />} sub={`${site.id === 'bags' ? 'packs and rolls' : 'bundles'} · ${stock.length} products`} onClick={() => go.site('stock')} />}
-        <Stat label="Open exceptions" icon={AlertTriangle} accent="var(--series-8)" value={<CountUp value={ex.length} />} tone={ex.some((e) => e.severity === 'critical') ? 'bad' : ex.length ? 'warn' : 'neutral'} sub={ex.length ? `${ex.filter((e) => e.severity === 'critical').length} critical` : 'Nothing to decide'} onClick={() => go.site('dashboard')} />
+          ? <Stat label="Intake today" icon={Scale} accent="var(--series-5)" value={<><CountUp value={Math.round(intakeToday(s, s.today).reduce((t, d) => t + d.netKg, 0))} /><span className="t-base text-[var(--text-3)] font-medium"> kg</span></>} sub={`${intakeToday(s, s.today).length} deliveries`} onClick={() => go.site('reports/production')} />
+          : <Stat label="In stock" icon={Boxes} accent="var(--series-5)" value={<CountUp value={stock.reduce((t, r) => t + r.bundles, 0)} />} sub={`${site.id === 'bags' ? 'packs and rolls' : 'bundles'} · ${stock.length} products`} onClick={() => go.site('reports/dispatch')} />}
+        <Stat label="Open exceptions" icon={AlertTriangle} accent="var(--series-8)" value={<CountUp value={ex.length} />} tone={ex.some((e) => e.severity === 'critical') ? 'bad' : ex.length ? 'warn' : 'neutral'} sub={ex.length ? `${ex.filter((e) => e.severity === 'critical').length} critical` : 'Nothing to decide'} onClick={() => go.site('reports/production')} />
       </KpiStrip>
 
       <div className="grid gap-[var(--gap)] min-[1240px]:grid-cols-[minmax(0,1fr)_340px] items-start">

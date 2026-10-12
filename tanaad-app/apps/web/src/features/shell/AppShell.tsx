@@ -277,7 +277,7 @@ function StatusBar({ scope }: { scope: 'group' | 'site' }) {
       <Seg onClick={() => s.setOnline(!s.online)} title="Click to simulate losing or regaining the connection">{s.online ? <Cloud className="size-3" /> : <CloudOff className="size-3" />}{s.online ? (pending ? `${pending} syncing` : 'Synced') : `Offline · ${pending} queued on this device`}</Seg>
       <Seg onClick={prefs.toggleDensity} title="Switch between compact (keyboard and mouse) and touch layout"><MonitorSmartphone className="size-3" />{prefs.density === 'compact' ? 'Compact' : 'Touch'}</Seg>
       <Seg onClick={() => prefs.setHelp(true)}><Keyboard className="size-3" />Shortcuts <Kbd keys="?" /></Seg>
-      <Seg>v0.2</Seg>
+      <Seg title="Tanaad ERP v3.0">v3.0</Seg>
     </footer>
   );
 }

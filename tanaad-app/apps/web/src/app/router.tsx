@@ -82,6 +82,10 @@ const siteRoutes = [
   s('sales/orders', () => import('@/features/sales/Orders'), 'Orders'),
   s('sales/invoices', () => import('@/features/sales/Invoices'), 'Invoices'),
   s('reports', () => import('@/features/reports/Reports'), 'Reports'),
+  s('reports/production', () => import('@/features/reports/ProductionReport'), 'ProductionReport'),
+  s('reports/attendance', () => import('@/features/reports/AttendanceReport'), 'AttendanceReport'),
+  s('reports/cash', () => import('@/features/reports/CashReport'), 'CashReport'),
+  s('reports/dispatch', () => import('@/features/reports/DispatchReport'), 'DispatchReport'),
   s('settings', () => import('@/features/settings/Settings'), 'Settings'),
   s('purchases', () => import('@/features/purchases/Purchases'), 'Purchases'),
 ];
