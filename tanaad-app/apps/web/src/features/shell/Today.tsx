@@ -1,472 +1,203 @@
-import { useNavigate } from '@tanstack/react-router';
-import {
-  AlertTriangle,
-  Banknote,
-  BarChart3,
-  Boxes,
-  CheckSquare,
-  ClipboardCheck,
-  Cog,
-  Factory,
-  FileText,
-  PackageCheck,
-  Printer,
-  Scale,
-  ShoppingCart,
-  Truck,
-  UserPlus,
-  Users,
-  Wallet,
-  Wrench,
-} from 'lucide-react';
-import { useStore } from '@/data/store';
-import { useSite } from '@/app/hooks';
-import {
-  cashDayFor,
-  cashSummary,
-  clientBalance,
-  currentShiftKind,
-  headcount,
-  intakeToday,
-  lowStockParts,
-  machineWall,
-  machinesDown,
-  openExceptions,
-  rosterFor,
-} from '@/data/selectors';
-import { fmtNum, fmtUGX } from '@/data/format';
+import { useEffect } from 'react';
+import { Activity, AlertCircle, AlertTriangle, ArrowRight, Boxes, CheckCircle2, Circle, CircleDot, LayoutDashboard, Scale, Users, Wallet } from 'lucide-react';
+import type { Role } from '@tanaad/domain';
+import { contractState } from '@tanaad/domain';
+import { useStore, type AppState } from '@/data/store';
+import { useSite, useGo } from '@/app/hooks';
+import { registerHotkey } from '@/app/hotkeys';
+import { ROLE_TABS, visibleSiteNav } from '@/app/nav';
+import { ActionTile, Avatar, Badge, Bar, Button, Empty, KpiStrip, Note, Panel, Stat, cn } from '@/components/ui';
+import { CountUp, Donut, TimeTrack } from '@/components/charts';
+import { SITE_COLOR } from '@/config/siteIdentity';
+import { attendanceFor, cashDayFor, cashSummary, currentShiftKind, dailySeries, DEMO_HOUR, headcount, lastWorkingDays, intakeToday, lowStockParts, machineWall, machinesDown, openExceptions, receivables, rosterFor, shiftId, stockByProduct } from '@/data/selectors';
+import { compact, fmtUGX } from '@/data/format';
 import { roleLabel } from '@/config/roles';
-import { StatusNotice, TaskRow, type TaskState } from '@/components/simple';
-import { en } from '@/i18n/en';
+import type { Site } from '@tanaad/domain';
 
-/**
- * Principle 3 & Section 5:
- * "The home screen is a short to-do list. In plain sentences:
- *  'Mark who came to work today', 'Write down what each machine made'.
- *  Each line shows done or not done. Nothing else competes with it."
- *
- * A role never sees another role's screens.
- */
-export function Today() {
-  const s = useStore();
-  const site = useSite();
-  const navigate = useNavigate();
+type TaskState = 'done' | 'todo' | 'attention' | 'info';
+interface Task { id: string; title: string; detail: string; state: TaskState; progress?: [number, number]; to: string; cta: string }
 
-  const role = s.session?.role ?? 'supervisor';
-  const user = s.users.find((u) => u.id === s.session?.userId);
-  const shiftKind = currentShiftKind();
+/** What this role has to get done this shift, worked out from live data. */
+function tasksFor(role: Role, s: AppState, site: Site): Task[] {
+  const kind = currentShiftKind(); const sh = shiftId(site.id, s.today, kind);
+  const roster = rosterFor(s, site.id).filter((r) => r.contractState !== 'expired');
+  const marked = attendanceFor(s, sh).length;
+  const wall = machineWall(s, site.id, s.today, kind); const active = wall.filter((t) => t.state !== 'arriving' && t.state !== 'down');
+  const logged = active.filter((t) => t.state !== 'not_logged').length; const below = wall.filter((t) => t.state === 'below').length;
+  const expiring = rosterFor(s, site.id).filter((r) => r.engagement?.type === 'contract' && contractState(r.engagement.endDate, s.today) !== 'open').length;
+  const cd = cashDayFor(s, site.id, s.today); const cash = cd ? cashSummary(s, cd.id) : undefined;
+  const orders = s.orders.filter((o) => o.siteId === site.id);
+  const awaitingCash = orders.filter((o) => o.status === 'awaiting_cash').length; const awaitingApproval = orders.filter((o) => o.status === 'awaiting_approval').length;
+  const toLoad = orders.filter((o) => o.status === 'approved' || o.status === 'picking').length;
+  const toInvoice = orders.filter((o) => (o.status === 'dispatched' || o.status === 'delivered') && !s.invoices.some((i) => i.orderId === o.id)).length;
+  const low = lowStockParts(s, site.id).length; const down = machinesDown(s, site.id).length; const ex = openExceptions(s, site.id);
+  const held = s.dispatches.filter((d) => d.siteId === site.id && d.gateStatus === 'hold').length;
+  const lastCount = s.stockCounts.filter((c) => c.siteId === site.id).map((c) => c.day).sort().pop();
+  const countAge = lastCount ? Math.round((new Date(s.today).getTime() - new Date(lastCount).getTime()) / 86400000) : undefined;
+  const unpaidIntake = s.collectorDeliveries.filter((d) => !d.paid).length;
+  const overdue = receivables(s, site.id).filter((r) => r.ageDays > r.client.creditDays).length;
+  const signedUpToday = s.people.filter((p) => p.homeSiteId === site.id && p.joinedOn === s.today).length;
+  const wallName = site.machineWallTitle;
 
-  // Shared live facts for status pills on the home list
-  const roster = rosterFor(s, site.id);
-  const shiftRec = s.shifts.find(
-    (sh) => sh.siteId === site.id && sh.day === s.today && sh.kind === shiftKind,
-  );
-  const markedCount = shiftRec
-    ? s.attendance.filter((a) => a.shiftId === shiftRec.id).length
-    : 0;
-  const hc = headcount(s, site.id, s.today);
-
-  const wall = machineWall(s, site.id, s.today, shiftKind).filter(
-    (m) => m.state !== 'arriving',
-  );
-  const loggedMachines = wall.filter(
-    (m) => m.state === 'ok' || m.state === 'logged' || m.state === 'below',
-  ).length;
-  const unloggedMachines = wall.filter((m) => m.state === 'not_logged').length;
-
-  const addedWorkersToday = s.people.filter(
-    (p) => p.homeSiteId === site.id && p.joinedOn === s.today,
-  ).length;
-
-  const labelsToday = s.labels.filter(
-    (l) => l.siteId === site.id && l.day === s.today,
-  ).length;
-
-  const cd = cashDayFor(s, site.id, s.today);
-  const cs = cd ? cashSummary(s, cd.id) : undefined;
-  const ordersAwaitingCash = s.orders.filter(
-    (o) => o.siteId === site.id && o.status === 'awaiting_cash',
-  ).length;
-  const moneyOutLines = cs
-    ? cs.entries.filter((e) => e.direction === 'out').length
-    : 0;
-
-  const ordersToLoad = s.orders.filter(
-    (o) => o.siteId === site.id && (o.status === 'approved' || o.status === 'picking'),
-  ).length;
-  const dispatchesToday = s.dispatches.filter(
-    (d) => d.siteId === site.id && d.createdAt.startsWith(s.today),
-  );
-  const heldAtGate = dispatchesToday.filter((d) => d.gateStatus === 'hold').length;
-  const pendingAtGate = dispatchesToday.filter((d) => d.gateStatus === 'pending').length;
-
-  const countsToday = s.stockCounts.filter(
-    (c) => c.siteId === site.id && c.day === s.today,
-  ).length;
-  const lowParts = lowStockParts(s, site.id);
-  const downMachines = machinesDown(s, site.id);
-
-  const siteClients = s.clients.filter((c) =>
-    site.id === 'mats' ? true : c.channel === 'local',
-  );
-  const owingClients = siteClients.filter(
-    (c) => clientBalance(s, c.id).balance > 0,
-  ).length;
-  const siteOrders = s.orders.filter((o) => o.siteId === site.id);
-  const unpaidInvoices = s.invoices.filter((inv) => {
-    const ord = siteOrders.find((o) => o.id === inv.orderId);
-    return ord && ord.status !== 'paid';
-  }).length;
-
-  const exceptions = openExceptions(s, site.id);
-  const intakes = intakeToday(s, s.today);
-
-  const go = (subpath: string, search?: Record<string, string>) => {
-    navigate({
-      to: `/s/${site.id}/${subpath}` as never,
-      search: search as never,
-    });
+  const t: Record<string, Task> = {
+    attendance: { id: 'attendance', title: 'Mark today’s attendance', detail: marked >= roster.length ? `All ${roster.length} workers marked for the ${kind} shift` : `${roster.length - marked} of ${roster.length} workers still need to be marked Present, Half day or Absent`, state: marked >= roster.length ? 'done' : 'todo', progress: [Math.min(marked, roster.length), roster.length], to: 'people/attendance', cta: marked >= roster.length ? 'Review attendance' : 'Mark attendance' },
+    machines: { id: 'machines', title: `Log machine output on the ${wallName}`, detail: logged >= active.length ? (below ? `${below} machine below benchmark with no reason given` : 'Every running machine has its shift output recorded') : `${active.length - logged} machine${active.length - logged === 1 ? '' : 's'} still waiting for shift output${below ? ` · ${below} below benchmark` : ''}`, state: logged >= active.length ? (below ? 'attention' : 'done') : 'attention', progress: [logged, active.length], to: 'production/wall', cta: logged >= active.length ? `Review ${wallName}` : 'Log machines' },
+    signup: { id: 'signup', title: 'Register a new casual worker', detail: signedUpToday ? `${signedUpToday} new casual worker registered today` : 'Capture ID photo, face photo, daily rate and zone in under 1 minute', state: 'info', to: 'people/signup', cta: 'Register casual' },
+    contracts: { id: 'contracts', title: 'Review worker contracts & roster', detail: expiring ? `${expiring} contract${expiring === 1 ? '' : 's'} ending within 3 days or already ended` : 'All active contracts are in good standing', state: expiring ? 'attention' : 'done', to: 'people/registry', cta: 'Open workers' },
+    expense: { id: 'expense', title: 'Record cash expenses with a category', detail: cash ? `${cash.entries.filter((e) => e.direction === 'out').length} entries today · ${fmtUGX(cash.expenses + cash.wages)} paid out` : 'Record money paid out with a category and payee', state: 'info', to: 'cash/expense', cta: 'Record expense' },
+    confirmCash: { id: 'confirmCash', title: 'Confirm cash received for local orders', detail: awaitingCash ? `${awaitingCash} local order${awaitingCash === 1 ? '' : 's'} waiting for cashier confirmation before loading` : 'All local orders have cash confirmed', state: awaitingCash ? 'todo' : 'done', to: 'sales/orders', cta: 'Confirm cash' },
+    closeDay: { id: 'closeDay', title: 'Count notes, sign and close the cash day', detail: cd?.status === 'closed' ? 'Cash day closed and signed. Balance carried forward.' : cash ? `Expected closing balance: ${fmtUGX(cash.expectedClosing)}` : 'Open cash book to count notes and reconcile', state: cd?.status === 'closed' ? 'done' : DEMO_HOUR >= 17 ? 'attention' : 'todo', to: 'cash', cta: 'Open cash book' },
+    settlement: { id: 'settlement', title: 'Pay due worker wage settlements', detail: 'Settle weekly casuals, ended contracts, and monthly staff', state: 'info', to: 'people/settlement', cta: 'Open settlements' },
+    load: { id: 'load', title: 'Load lorry, scan bundles & weigh at gate', detail: held ? `${held} lorry held at the gate due to weight mismatch` : toLoad ? `${toLoad} approved order${toLoad === 1 ? '' : 's'} ready to load and scan` : 'No lorries waiting to load right now', state: held ? 'attention' : toLoad ? 'todo' : 'done', to: 'stock/dispatch', cta: 'Load & weigh lorry' },
+    receive: { id: 'receive', title: 'Weigh in incoming deliveries at the gate', detail: site.id === 'recycling' ? `${intakeToday(s, s.today).length} collector deliveries today · ${unpaidIntake} vouchers unpaid` : 'Weigh every incoming supplier delivery on the gate scale', state: site.id === 'recycling' && unpaidIntake ? 'todo' : 'info', to: site.id === 'recycling' ? 'production/intake' : 'stock/receive', cta: 'Weigh delivery' },
+    count: { id: 'count', title: 'Count physical stock in a warehouse zone', detail: countAge === undefined ? 'No stock count on record yet' : `Last warehouse count was ${countAge} day${countAge === 1 ? '' : 's'} ago`, state: countAge === undefined || countAge > 7 ? 'todo' : 'done', to: 'stock/count', cta: 'Count stock' },
+    spares: { id: 'spares', title: 'Issue spare parts & check minimum stock', detail: low ? `${low} spare part${low === 1 ? '' : 's'} below minimum reorder level` : 'All spare parts are above minimum stock', state: low ? 'attention' : 'done', to: 'stock/spares', cta: 'Open spares store' },
+    breakdowns: { id: 'breakdowns', title: 'Resolve open machine breakdowns', detail: down ? `${down} machine${down === 1 ? '' : 's'} currently down for repair` : 'All machines are running normally', state: down ? 'attention' : 'done', to: 'stock/maintenance', cta: 'Open breakdowns' },
+    approval: { id: 'approval', title: 'Track export orders awaiting CEO credit approval', detail: awaitingApproval ? `${awaitingApproval} export order${awaitingApproval === 1 ? '' : 's'} waiting for CEO decision` : 'No export orders waiting for credit approval', state: awaitingApproval ? 'info' : 'done', to: 'sales/orders', cta: 'View orders' },
+    invoice: { id: 'invoice', title: 'Send invoices for dispatched orders', detail: toInvoice ? `${toInvoice} dispatched order${toInvoice === 1 ? '' : 's'} ready to invoice` : 'Every dispatched order has been invoiced', state: toInvoice ? 'todo' : 'done', to: 'sales/invoices', cta: 'Send invoices' },
+    overdue: { id: 'overdue', title: 'Follow up on overdue client balances', detail: overdue ? `${overdue} client${overdue === 1 ? '' : 's'} past agreed credit terms` : 'No clients are past credit terms', state: overdue ? 'attention' : 'done', to: 'sales/clients', cta: 'Review clients' },
+    exceptions: { id: 'exceptions', title: 'Review & decide open factory exceptions', detail: ex.length ? `${ex.length} open item${ex.length === 1 ? '' : 's'} · ${ex.filter((e) => e.severity === 'critical').length} critical` : 'No open exceptions waiting for a decision', state: ex.some((e) => e.severity === 'critical') ? 'attention' : ex.length ? 'todo' : 'done', to: 'dashboard', cta: 'Open dashboard' },
   };
+  const byRole: Record<Role, string[]> = {
+    supervisor: ['attendance', 'machines', 'contracts', 'signup'],
+    cashier: ['confirmCash', 'expense', 'settlement', 'closeDay'],
+    storekeeper: ['load', 'receive', 'count', 'spares'],
+    gate: ['load', 'receive'],
+    mechanic: ['breakdowns', 'spares', 'machines'],
+    sales: ['confirmCash', 'approval', 'invoice', 'overdue'],
+    site_manager: ['exceptions', 'machines', 'attendance', 'contracts', 'closeDay', 'spares'],
+    driver: ['load'],
+    ceo: ['exceptions'],
+    group_admin: ['exceptions'],
+  };
+  return (byRole[role] ?? byRole.site_manager).map((k) => t[k]);
+}
 
-  interface HomeItem {
-    title: string;
-    description: string;
-    statusText: string;
-    state: TaskState;
-    icon: typeof Users;
-    onClick: () => void;
-  }
+const STATE_META: Record<TaskState, { icon: typeof Circle; color: string; label: string; badgeTone: 'ok' | 'warn' | 'bad' | 'info' }> = {
+  done: { icon: CheckCircle2, color: 'var(--ok)', label: 'Completed', badgeTone: 'ok' },
+  todo: { icon: Circle, color: 'var(--warn)', label: 'To do today', badgeTone: 'warn' },
+  attention: { icon: AlertCircle, color: 'var(--bad)', label: 'Needs action', badgeTone: 'bad' },
+  info: { icon: CircleDot, color: 'var(--info)', label: 'Quick action', badgeTone: 'info' },
+};
 
-  let items: HomeItem[] = [];
-  let roleSubtitle: string = en.home.supervisorSub;
+/** Role home: the shift's work as a guided step-by-step workflow, live numbers above it, shortcuts beside it. */
+export function Today() {
+  const s = useStore(); const site = useSite(); const go = useGo(); const role = s.session?.role ?? 'supervisor';
+  const user = s.users.find((u) => u.id === s.session?.userId); const kind = currentShiftKind();
+  const tasks = tasksFor(role, s, site);
+  const hc = headcount(s, site.id, s.today, kind); const wall = machineWall(s, site.id, s.today, kind);
+  const notLogged = wall.filter((t) => t.state === 'not_logged').length; const below = wall.filter((t) => t.state === 'below').length;
+  const cd = cashDayFor(s, site.id, s.today); const cash = cd ? cashSummary(s, cd.id) : undefined;
+  const ex = openExceptions(s, site.id); const stock = stockByProduct(s, site.id);
+  const shift = site.shifts.find((x) => x.kind === kind);
+  const greet = DEMO_HOUR < 12 ? 'Good morning' : DEMO_HOUR < 17 ? 'Good afternoon' : 'Good evening';
+  const done = tasks.filter((t) => t.state === 'done').length; const countable = tasks.filter((t) => t.state !== 'info').length;
+  const quick = (ROLE_TABS[role] ?? []).filter((to) => to !== 'today').map((to) => visibleSiteNav(role, site.id).find((n) => n.to === to)).filter((n): n is NonNullable<typeof n> => !!n);
+  const nextTask = tasks.find((t) => t.state === 'attention' || t.state === 'todo') ?? tasks[0];
 
-  if (role === 'supervisor') {
-    roleSubtitle = en.home.supervisorSub;
-    const allMarked = roster.length > 0 && markedCount >= roster.length;
-    const allMachinesLogged = wall.length > 0 && unloggedMachines === 0;
-    items = [
-      {
-        title: en.home.tasks.whoCameToday,
-        description: en.home.tasks.whoCameTodayDesc,
-        statusText: allMarked
-          ? `Done · ${markedCount} marked`
-          : `${markedCount} of ${roster.length} marked`,
-        state: allMarked ? 'done' : 'attention',
-        icon: Users,
-        onClick: () => go('people/attendance'),
-      },
-      {
-        title: en.home.tasks.whatMachinesMade,
-        description: en.home.tasks.whatMachinesMadeDesc,
-        statusText: allMachinesLogged
-          ? `Done · all ${wall.length} written down`
-          : `${loggedMachines} of ${wall.length} machines written down`,
-        state: allMachinesLogged ? 'done' : 'attention',
-        icon: Factory,
-        onClick: () => go('production/wall'),
-      },
-      {
-        title: en.home.tasks.addNewWorker,
-        description: en.home.tasks.addNewWorkerDesc,
-        statusText:
-          addedWorkersToday > 0
-            ? `Done · ${addedWorkersToday} added today`
-            : 'Ready when needed',
-        state: addedWorkersToday > 0 ? 'done' : 'todo',
-        icon: UserPlus,
-        onClick: () => go('people/signup'),
-      },
-      {
-        title: en.home.tasks.printSticker,
-        description:
-          site.id === 'bags'
-            ? 'Print the 6-field roll sticker for an extruded film roll'
-            : en.home.tasks.printStickerDesc,
-        statusText:
-          labelsToday > 0
-            ? `Done · ${labelsToday} printed today`
-            : 'Tap to print sticker',
-        state: labelsToday > 0 ? 'done' : 'todo',
-        icon: Printer,
-        onClick: () =>
-          go(site.id === 'bags' ? 'production/rolls' : 'production/labels'),
-      },
-    ];
-  } else if (role === 'cashier') {
-    roleSubtitle = en.home.cashierSub;
-    const moneyInDone = ordersAwaitingCash === 0 && (cs?.sales ?? 0) + (cs?.receipts ?? 0) > 0;
-    const isClosed = cd?.status === 'closed';
-    items = [
-      {
-        title: en.home.tasks.moneyIn,
-        description: en.home.tasks.moneyInDesc,
-        statusText:
-          ordersAwaitingCash > 0
-            ? `${ordersAwaitingCash} order${ordersAwaitingCash > 1 ? 's' : ''} waiting for cash`
-            : moneyInDone
-              ? `Done · ${fmtUGX((cs?.sales ?? 0) + (cs?.receipts ?? 0))} in`
-              : 'Not done yet',
-        state:
-          ordersAwaitingCash > 0
-            ? 'attention'
-            : moneyInDone
-              ? 'done'
-              : 'todo',
-        icon: Banknote,
-        onClick: () => go('cash', { mode: 'in' }),
-      },
-      {
-        title: en.home.tasks.moneyOut,
-        description: en.home.tasks.moneyOutDesc,
-        statusText:
-          moneyOutLines > 0
-            ? `Done · ${moneyOutLines} payment${moneyOutLines > 1 ? 's' : ''} written down`
-            : 'No payments written today',
-        state: moneyOutLines > 0 ? 'done' : 'todo',
-        icon: Wallet,
-        onClick: () => go('cash/expense'),
-      },
-      {
-        title: en.home.tasks.closeDay,
-        description: en.home.tasks.closeDayDesc,
-        statusText: isClosed ? 'Done · day closed and signed' : 'Not counted yet',
-        state: isClosed ? 'done' : 'attention',
-        icon: CheckSquare,
-        onClick: () => go('cash', { mode: 'close' }),
-      },
-    ];
-  } else if (role === 'storekeeper') {
-    roleSubtitle = en.home.storekeeperSub;
-    items = [
-      {
-        title: en.home.tasks.loadLorry,
-        description: en.home.tasks.loadLorryDesc,
-        statusText:
-          ordersToLoad > 0
-            ? `${ordersToLoad} order${ordersToLoad > 1 ? 's' : ''} ready to load`
-            : dispatchesToday.length > 0
-              ? `Done · ${dispatchesToday.length} loaded today`
-              : 'No lorry waiting',
-        state:
-          ordersToLoad > 0
-            ? 'attention'
-            : dispatchesToday.length > 0
-              ? 'done'
-              : 'todo',
-        icon: Truck,
-        onClick: () => go('stock/dispatch'),
-      },
-      {
-        title: en.home.tasks.receiveGoods,
-        description: en.home.tasks.receiveGoodsDesc,
-        statusText: 'Check note against scale',
-        state: 'todo',
-        icon: PackageCheck,
-        onClick: () =>
-          go(site.id === 'recycling' ? 'production/intake' : 'stock/receive'),
-      },
-      {
-        title: en.home.tasks.countStore,
-        description: en.home.tasks.countStoreDesc,
-        statusText:
-          countsToday > 0
-            ? `Done · ${countsToday} product${countsToday > 1 ? 's' : ''} counted today`
-            : 'Not counted today',
-        state: countsToday > 0 ? 'done' : 'attention',
-        icon: ClipboardCheck,
-        onClick: () => go('stock/count'),
-      },
-      {
-        title: en.home.tasks.giveSparePart,
-        description: en.home.tasks.giveSparePartDesc,
-        statusText:
-          lowParts.length > 0
-            ? `${lowParts.length} part${lowParts.length > 1 ? 's' : ''} low in stock`
-            : 'Store locked · PIN ready',
-        state: lowParts.length > 0 ? 'attention' : 'todo',
-        icon: Wrench,
-        onClick: () => go('stock/spares'),
-      },
-    ];
-  } else if (role === 'gate') {
-    roleSubtitle = en.home.gateSub;
-    items = [
-      {
-        title: en.home.tasks.weighLorryOut,
-        description: en.home.tasks.weighLorryOutDesc,
-        statusText:
-          heldAtGate > 0
-            ? `${heldAtGate} lorry held at gate`
-            : pendingAtGate > 0
-              ? `${pendingAtGate} lorry waiting to weigh`
-              : dispatchesToday.length > 0
-                ? `Done · ${dispatchesToday.length} weighed today`
-                : 'Ready to weigh lorry',
-        state:
-          heldAtGate > 0 || pendingAtGate > 0
-            ? 'attention'
-            : dispatchesToday.length > 0
-              ? 'done'
-              : 'todo',
-        icon: Truck,
-        onClick: () => go('stock/dispatch'),
-      },
-      {
-        title: en.home.tasks.weighDeliveryIn,
-        description:
-          site.id === 'recycling'
-            ? 'Weigh collector scrap, take deductions and see what we pay'
-            : en.home.tasks.weighDeliveryInDesc,
-        statusText:
-          site.id === 'recycling' && intakes.length > 0
-            ? `Done · ${intakes.length} weighed today`
-            : 'Scale ready',
-        state: site.id === 'recycling' && intakes.length > 0 ? 'done' : 'todo',
-        icon: Scale,
-        onClick: () =>
-          go(site.id === 'recycling' ? 'production/intake' : 'stock/receive'),
-      },
-    ];
-  } else if (role === 'mechanic') {
-    roleSubtitle = en.home.mechanicSub;
-    items = [
-      {
-        title: en.home.tasks.takeSparePart,
-        description: en.home.tasks.takeSparePartDesc,
-        statusText: 'Enter part, machine and PIN',
-        state: 'todo',
-        icon: Wrench,
-        onClick: () => go('stock/spares'),
-      },
-      {
-        title: en.home.tasks.reportBrokenMachine,
-        description: en.home.tasks.reportBrokenMachineDesc,
-        statusText:
-          downMachines.length > 0
-            ? `${downMachines.length} machine${downMachines.length > 1 ? 's' : ''} down now`
-            : 'Done · all machines running',
-        state: downMachines.length > 0 ? 'attention' : 'done',
-        icon: AlertTriangle,
-        onClick: () => go('stock/maintenance'),
-      },
-    ];
-  } else if (role === 'sales') {
-    roleSubtitle = en.home.salesSub;
-    items = [
-      {
-        title: en.home.tasks.newOrder,
-        description: en.home.tasks.newOrderDesc,
-        statusText: `${siteOrders.length} orders on record`,
-        state: 'todo',
-        icon: ShoppingCart,
-        onClick: () => go('sales/orders'),
-      },
-      {
-        title: en.home.tasks.whoOwesUs,
-        description: en.home.tasks.whoOwesUsDesc,
-        statusText:
-          owingClients > 0
-            ? `${owingClients} customer${owingClients > 1 ? 's' : ''} owe money`
-            : 'Done · no unpaid balance',
-        state: owingClients > 0 ? 'attention' : 'done',
-        icon: Users,
-        onClick: () => go('sales/clients'),
-      },
-      {
-        title: en.home.tasks.sendInvoice,
-        description: en.home.tasks.sendInvoiceDesc,
-        statusText:
-          unpaidInvoices > 0
-            ? `${unpaidInvoices} unpaid invoice${unpaidInvoices > 1 ? 's' : ''}`
-            : 'Done · all invoices paid',
-        state: unpaidInvoices > 0 ? 'attention' : 'done',
-        icon: FileText,
-        onClick: () => go('sales/invoices'),
-      },
-    ];
-  } else {
-    // Site manager
-    roleSubtitle = en.home.siteManagerSub;
-    items = [
-      {
-        title: en.home.tasks.todayAtFactory,
-        description: en.home.tasks.todayAtFactoryDesc,
-        statusText: `${hc.total} people came today`,
-        state: 'done',
-        icon: Factory,
-        onClick: () => go('dashboard'),
-      },
-      {
-        title: en.home.tasks.thingsWaitingManager,
-        description: en.home.tasks.thingsWaitingManagerDesc,
-        statusText:
-          exceptions.length > 0
-            ? `${exceptions.length} waiting for you`
-            : 'Done · nothing waiting',
-        state: exceptions.length > 0 ? 'attention' : 'done',
-        icon: AlertTriangle,
-        onClick: () => go('dashboard', { tab: 'waiting' }),
-      },
-      {
-        title: en.home.tasks.people,
-        description: en.home.tasks.peopleDesc,
-        statusText: `${roster.length} workers`,
-        state: 'todo',
-        icon: Users,
-        onClick: () => go('people/registry'),
-      },
-      {
-        title: en.home.tasks.reports,
-        description: en.home.tasks.reportsDesc,
-        statusText: 'View numbers',
-        state: 'todo',
-        icon: BarChart3,
-        onClick: () => go('reports'),
-      },
-      {
-        title: en.home.tasks.settings,
-        description: en.home.tasks.settingsDesc,
-        statusText: 'Products, machines, lists',
-        state: 'todo',
-        icon: Cog,
-        onClick: () => go('settings'),
-      },
-    ];
-  }
+  // Digits 1–9 open the nth task.
+  useEffect(() => {
+    const offs = tasks.slice(0, 9).map((t, i) => registerHotkey({ keys: String(i + 1), label: t.title, group: 'This page', run: () => go.site(t.to) }));
+    return () => offs.forEach((f) => f());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks.map((t) => t.id + t.to).join('|'), site.id]);
+
+  const past = dailySeries(s, site.id, lastWorkingDays(site.id, s.today, 7)).slice(0, -1);
+  const progress = Math.max(0.05, Math.min(1, (DEMO_HOUR - 7) / 12));
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Calm greeting header */}
-      <div className="paper-sheet p-5">
-        <div className="t-sm font-semibold text-[var(--text-2)]">
-          {site.name} · {roleLabel(role)}
-          {user ? ` · ${user.name}` : ''}
+    <div className="flex flex-col gap-[var(--gap)]">
+      {/* Greeting, shift clock, progress through the checklist */}
+      <section className="hero relative overflow-hidden px-5 py-4 flex flex-wrap items-center gap-x-8 gap-y-4">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <Avatar name={user?.name ?? '?'} seed={user?.avatarSeed} size={48} className="ring-2 ring-white/25" />
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-white/55 flex items-center gap-1.5"><span className="size-1.5 rounded-[2px]" style={{ background: SITE_COLOR[site.id] }} />{roleLabel(role)} · {site.name}</div>
+            <h1 className="text-[24px] font-semibold tracking-[-0.02em] leading-tight">{greet}, {user?.name.split(' ')[0]}</h1>
+            <div className="text-[12.5px] text-white/70">{nextTask && nextTask.state !== 'done' ? `Next step: ${nextTask.title}` : 'All main shift steps are up to date'}</div>
+          </div>
         </div>
-        <h1 className="t-title text-[var(--text)] mt-0.5">{en.home.title}</h1>
-        <p className="t-base text-[var(--text-2)] mt-1">{roleSubtitle}</p>
-      </div>
+        <div className="flex-1 min-w-[240px] max-w-[460px]">
+          <div className="flex items-center justify-between mb-2 text-[12.5px]"><span className="inline-flex items-center gap-1.5 font-medium"><span className="size-1.5 rounded-full bg-[var(--color-amber-400)] anim-live" />{kind === 'day' ? 'Day' : 'Night'} shift</span><span className="text-white/60">{DEMO_HOUR - 7} h in · {19 - DEMO_HOUR} h left</span></div>
+          <TimeTrack progress={progress} startLabel={shift?.starts ?? '07:00'} endLabel={shift?.ends ?? '19:00'} nowLabel={`${DEMO_HOUR}:20 now`} onDark />
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5 ml-auto">
+          {countable > 0 && <div className="flex items-center gap-2.5 mr-1 [&_circle:first-child]:stroke-white/15"><Donut size={52} thickness={6} center={<span className="text-white text-[13px]">{done}/{countable}</span>} segments={[{ label: 'Done', value: done, color: 'var(--color-amber-400)' }, { label: 'Open', value: Math.max(0, countable - done), color: 'rgb(255 255 255 / .18)' }]} /><div className="leading-tight"><div className="text-[13px] font-medium">Shift steps</div><div className="text-[11.5px] text-white/55">{done === countable ? 'all done' : `${countable - done} remaining`}</div></div></div>}
+          <Button variant="inverse" icon={LayoutDashboard} onClick={() => go.site('dashboard')}>Factory Dashboard</Button>
+          {nextTask && <Button variant="accent" onClick={() => go.site(nextTask.to)}>{nextTask.cta}</Button>}
+        </div>
+      </section>
+      {site.toBeConfirmed && (role === 'supervisor' || role === 'site_manager') && <Note tone="warn">{site.toBeConfirmed}</Note>}
 
-      {/* Unconfirmed process note if present on this site (Rule 7) */}
-      {site.toBeConfirmed && (
-        <StatusNotice tone="warn" title={en.app.toBeConfirmed}>
-          {site.toBeConfirmed}
-        </StatusNotice>
-      )}
+      <KpiStrip>
+        <Stat label={`On ${kind} shift`} icon={Users} accent="var(--series-1)" value={<CountUp value={hc.total} />} sub={`${hc.present} full · ${hc.half} half day`} spark={past.map((d) => d.headcount)} onClick={() => go.site('people/attendance')} />
+        <Stat label="Machines not logged" icon={Activity} accent="var(--series-7)" value={<CountUp value={notLogged} />} tone={notLogged ? 'bad' : 'neutral'} sub={below ? `${below} below benchmark` : 'Benchmarks met so far'} spark={past.map((d) => d.units)} sparkColor="var(--series-7)" onClick={() => go.site('production/wall')} />
+        <Stat label="Cash expected" icon={Wallet} accent="var(--series-2)" value={cash ? <CountUp value={cash.expectedClosing} format={compact} /> : '—'} sub={cash ? `UGX · day ${cd?.status}` : 'No cash day'} spark={past.map((d) => d.closing)} onClick={() => go.site('cash')} />
+        {site.id === 'recycling'
+          ? <Stat label="Intake today" icon={Scale} accent="var(--series-5)" value={<><CountUp value={Math.round(intakeToday(s, s.today).reduce((t, d) => t + d.netKg, 0))} /><span className="t-base text-[var(--text-3)] font-medium"> kg</span></>} sub={`${intakeToday(s, s.today).length} deliveries`} onClick={() => go.site('production/intake')} />
+          : <Stat label="In stock" icon={Boxes} accent="var(--series-5)" value={<CountUp value={stock.reduce((t, r) => t + r.bundles, 0)} />} sub={`${site.id === 'bags' ? 'packs and rolls' : 'bundles'} · ${stock.length} products`} onClick={() => go.site('stock')} />}
+        <Stat label="Open exceptions" icon={AlertTriangle} accent="var(--series-8)" value={<CountUp value={ex.length} />} tone={ex.some((e) => e.severity === 'critical') ? 'bad' : ex.length ? 'warn' : 'neutral'} sub={ex.length ? `${ex.filter((e) => e.severity === 'critical').length} critical` : 'Nothing to decide'} onClick={() => go.site('dashboard')} />
+      </KpiStrip>
 
-      {/* Short to-do list (2 to 5 items) */}
-      <div className="flex flex-col gap-3" role="list" aria-label="Today's tasks">
-        {items.map((item, idx) => (
-          <TaskRow
-            key={item.title}
-            index={idx + 1}
-            icon={item.icon}
-            title={item.title}
-            description={item.description}
-            statusText={item.statusText}
-            state={item.state}
-            onClick={item.onClick}
-          />
-        ))}
+      <div className="grid gap-[var(--gap)] min-[1240px]:grid-cols-[minmax(0,1fr)_340px] items-start">
+        <Panel icon={CheckCircle2} title="Your Guided Shift Workflow" sub="Follow each step in order — click the button on the right to complete it" pad={false}>
+          {tasks.map((t, i) => {
+            const st = STATE_META[t.state]; const Icon = st.icon;
+            return (
+              <div key={t.id} onClick={() => go.site(t.to)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go.site(t.to); } }}
+                className="group w-full flex flex-wrap sm:flex-nowrap items-center gap-3.5 px-[var(--pad)] py-3.5 touch:py-4 text-left border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--hover)] cursor-pointer transition-colors">
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <span className={cn('size-8 touch:size-10 rounded-lg grid place-items-center font-bold num t-base shrink-0', t.state === 'done' ? 'bg-[var(--ok-bg)] text-[var(--ok)]' : t.state === 'attention' ? 'bg-[var(--bad-bg)] text-[var(--bad)]' : 'bg-[var(--surface-3)] text-[var(--text)]')}>
+                    {t.state === 'done' ? <Icon className="size-5" /> : i + 1}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="t-xs font-semibold uppercase tracking-wider text-[var(--text-3)]">Step {i + 1}</span>
+                    <Badge tone={st.badgeTone}>{st.label}</Badge>
+                  </div>
+                  <div className={cn('t-base font-semibold mt-0.5', t.state === 'done' && 'text-[var(--text-2)]')}>{t.title}</div>
+                  <div className={cn('t-sm mt-0.5', t.state === 'attention' ? 'text-[var(--bad)] font-medium' : 'text-[var(--text-2)]')}>{t.detail}</div>
+                </div>
+                {t.progress && (
+                  <div className="hidden md:flex flex-col gap-1 w-[150px] shrink-0">
+                    <div className="flex items-center justify-between t-xs text-[var(--text-2)]">
+                      <span>Progress</span>
+                      <span className="num font-semibold">{t.progress[0]} / {t.progress[1]}</span>
+                    </div>
+                    <Bar value={t.progress[0]} max={t.progress[1] || 1} tone={t.progress[0] >= t.progress[1] ? 'ok' : 'series'} />
+                  </div>
+                )}
+                <span className={cn('inline-flex items-center gap-1.5 px-3 h-8 touch:h-10 rounded-md t-sm font-semibold shrink-0 transition-colors ml-auto',
+                  t.state === 'done'
+                    ? 'bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--line-2)] group-hover:bg-[var(--surface)] group-hover:text-[var(--text)]'
+                    : t.state === 'attention'
+                      ? 'bg-[var(--accent)] text-white shadow-xs'
+                      : 'bg-[var(--brand)] text-[var(--brand-contrast)] shadow-xs')}>
+                  {t.cta}
+                  <ArrowRight className="size-3.5" />
+                </span>
+              </div>
+            );
+          })}
+        </Panel>
+
+        <div className="flex flex-col gap-[var(--gap)]">
+          <Panel icon={AlertTriangle} title="Needs attention" sub={ex.length ? `${ex.length} open` : undefined} pad={false}>
+            {ex.length === 0 ? <div className="p-[var(--pad)]"><Empty title="Nothing open" hint="Exceptions raised by the gate, the cash close or the machine wall show up here." /></div> : ex.slice(0, 5).map((e) => (
+              <div key={e.id} className="flex items-start gap-2.5 px-[var(--pad)] py-2.5 border-b border-[var(--line)] last:border-b-0">
+                <span className="mt-[5px] size-2 rounded-full shrink-0" style={{ background: e.severity === 'critical' ? 'var(--bad)' : e.severity === 'warning' ? 'var(--warn)' : 'var(--text-4)' }} />
+                <div className="min-w-0 flex-1"><div className="t-base font-medium leading-snug">{e.title}</div><div className="t-sm text-[var(--text-3)]">{roleLabel(e.ownerRole)} to decide</div></div>
+              </div>
+            ))}
+          </Panel>
+          {quick.length > 0 && (
+            <div>
+              <div className="t-label mb-1.5">Quick shortcuts</div>
+              <div className="flex flex-col gap-1.5">{quick.map((n) => <ActionTile key={n.to} icon={n.icon} title={n.label} hint={n.group} onClick={() => go.site(n.to)} />)}</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
