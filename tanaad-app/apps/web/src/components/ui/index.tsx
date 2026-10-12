@@ -63,7 +63,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       className={cn('inline-flex items-center justify-center rounded-md font-medium whitespace-nowrap select-none transition-colors disabled:opacity-45 disabled:pointer-events-none', v[variant], s[size], block && 'w-full', className)} {...rest}>
       {Icon && <Icon className={cn('shrink-0', size === 'sm' ? 'size-3.5' : 'size-4 touch:size-5')} strokeWidth={2} />}
       {children}
-      {hotkey && <Kbd keys={hotkey} className={cn('ml-1', (variant === 'primary' || variant === 'accent' || variant === 'danger' || variant === 'ok' || variant === 'inverse') && '[&_kbd]:bg-transparent [&_kbd]:border-current [&_kbd]:text-current [&_kbd]:opacity-60')} />}
     </button>
   );
 });
@@ -199,7 +198,6 @@ export function ActionTile({ icon: Icon, title, hint, onClick, tone = 'neutral',
       <span className={cn('size-9 touch:size-11 rounded-lg grid place-items-center shrink-0', chip)}><Icon className="size-4 touch:size-6" strokeWidth={2} /></span>
       <span className="min-w-0 flex-1"><span className="block t-base font-semibold truncate">{title}</span>{hint && <span className="block t-sm text-[var(--text-2)] truncate">{hint}</span>}</span>
       {badge}
-      {hotkey ? <Kbd keys={hotkey} /> : null}
       <ChevronRight className="size-4 text-[var(--text-4)] group-hover:text-[var(--text-2)] shrink-0" />
     </button>
   );

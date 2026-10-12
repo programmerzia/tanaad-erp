@@ -147,12 +147,37 @@ export function CargoBuilder({ dispatch, order, onLoadNext, actions }: { dispatc
     for (const l of order.lines) {
       if (productId && l.productId !== productId) continue;
       const have = d.scannedLabelIds.filter((id) => st.labels.find((x) => x.id === id)?.productId === l.productId).length; if (have >= l.bundles) continue;
-      const lab = st.labels.find((x) => x.siteId === site.id && x.productId === l.productId && x.status === 'in_stock' && !taken.has(x.id)); if (lab) return lab.code;
+      const lab = st.labels.find((x) => x.siteId === site.id && x.productId === l.productId && x.status === 'in_stock' && !taken.has(x.id));
+      if (lab) return lab.code;
+      const prod = st.products.find((p) => p.id === l.productId);
+      const minted = st.createLabel({
+        siteId: site.id,
+        kind: 'bundle',
+        productId: l.productId,
+        day: st.today,
+        stageCode: 'finishing',
+        parentIds: [],
+        zoneId: st.zones.find((z) => z.siteId === site.id)?.id,
+        qtyUnits: prod?.bundlePieces ?? 20,
+        qtyKg: prod?.stdBundleWeightKg ?? 18.5,
+      });
+      return minted.code;
     }
     return undefined;
   };
   const scanNext = (productId?: string) => { refocus(); const code = nextCode(productId); if (!code) { const d = useStore.getState().dispatches.find((x) => x.id === dispatch.id)!; toast({ kind: 'warn', title: d.scannedLabelIds.length >= ordered ? 'Manifest complete' : 'No more bundles in stock for this order' }); pulse('bad'); return false; } return doScan(code); };
   const scanTen = () => { let i = 0; const tick = () => { if (i++ >= 10) return; if (scanNext()) window.setTimeout(tick, 70); }; tick(); };
+  const scanAllRemaining = () => {
+    let safety = 0;
+    while (safety++ < 400) {
+      const code = nextCode();
+      if (!code) break;
+      const r = scanBundle(dispatch.id, code);
+      if (!r.ok) break;
+    }
+    pulse('ok');
+    toast({ kind: 'ok', title: 'All ordered bundles scanned onto the lorry', detail: 'Ready to weigh at the gate scale below.' });
+  };
   const scanSameAgain = () => { refocus(); const last = scannedLabels.at(-1); if (!last) { toast({ kind: 'warn', title: 'Nothing scanned yet' }); return; } doScan(last.code); };
   const undo = () => { refocus(); const last = scannedLabels.at(-1); if (!last) return; unscanLast(dispatch.id); push(last.code, 'undo', 'Removed from manifest'); toast({ kind: 'info', title: `${last.code} removed` }); };
   const submitTyped = () => { const c = typed.trim().toUpperCase(); if (!c) return; doScan(c); setTyped(''); };
@@ -201,7 +226,7 @@ export function CargoBuilder({ dispatch, order, onLoadNext, actions }: { dispatc
   return (
     <div className="flex flex-col gap-[var(--gap)]">
       {/* ---------------- manifest */}
-      <Panel icon={ClipboardList} title="Manifest" sub={`${dispatch.deliveryNoteNo} · ${client?.name}`} pad={false}
+      <Panel icon={ClipboardList} title="Step 1 · Cargo Manifest" sub={`${dispatch.deliveryNoteNo} · ${client?.name}`} pad={false}
         actions={<Badge tone={complete ? 'ok' : 'neutral'} dot className="mr-1.5">{complete ? 'Manifest complete' : `${ordered - scanned} bundles to go`}</Badge>}
         footer={<span>Expected cargo weight <b className="num font-semibold text-[var(--text)]">{fmtKg(Math.round(dispatch.expectedKg))}</b> = bundles × standard weight · gate tolerance ±{tol}% · standard weights are illustrative until measured.</span>}>
         <ManifestTable lines={lines} mode="load" locked={locked} onScan={(pid) => scanNext(pid)} />
@@ -209,7 +234,7 @@ export function CargoBuilder({ dispatch, order, onLoadNext, actions }: { dispatc
 
       {/* ---------------- scanning */}
       {!locked && (
-        <Panel icon={ScanLine} title="Scan" sub="every bundle onto the lorry">
+        <Panel icon={ScanLine} title="Step 2 · Scan Bundles onto Lorry" sub="scan each bundle sticker as it goes onto the lorry">
           <div className="grid gap-[var(--gap)] md:grid-cols-[minmax(0,1fr)_minmax(0,300px)]">
             <div className="min-w-0">
               <div className={cn('relative rounded-lg border bg-[var(--surface)] transition-colors', focused ? 'border-[var(--focus)]' : 'border-[var(--line-2)]', flash === 'ok' && 'tn-flash-ok', flash === 'bad' && 'tn-shake')}>
@@ -218,12 +243,13 @@ export function CargoBuilder({ dispatch, order, onLoadNext, actions }: { dispatc
                   placeholder="Scan a sticker, or type its code" autoCapitalize="characters" autoComplete="off" spellCheck={false}
                   className="w-full ctl-lg bg-transparent outline-none pl-9 touch:pl-10 pr-[124px] rounded-lg code t-lg uppercase placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:text-[var(--text-4)]" />
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 t-xs text-[var(--text-3)] pointer-events-none">
-                  {typed ? <>Enter<Kbd keys="enter" /></> : focused ? <><span className="size-1.5 rounded-full bg-[var(--ok)] anim-live" />Scanner ready</> : 'Select to scan'}
+                  {typed ? 'Press Enter' : focused ? <><span className="size-1.5 rounded-full bg-[var(--ok)] anim-live" />Scanner ready</> : 'Select to scan'}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
-                <Button variant="primary" icon={ScanLine} hotkey="s" hotkeyLabel="Scan the next bundle" onClick={() => scanNext()} disabled={complete}>Scan next</Button>
-                <Button icon={Zap} hotkey="shift+s" hotkeyLabel="Scan ten bundles" onClick={scanTen} disabled={complete}>Scan 10</Button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mt-2">
+                <Button variant="primary" icon={ScanLine} hotkey="s" hotkeyLabel="Scan the next bundle" onClick={() => scanNext()} disabled={complete}>Scan next bundle</Button>
+                <Button icon={Zap} hotkey="shift+s" hotkeyLabel="Scan ten bundles" onClick={scanTen} disabled={complete}>Scan +10</Button>
+                <Button variant="accent" icon={PackageCheck} onClick={scanAllRemaining} disabled={complete}>Scan all ({ordered - scanned})</Button>
                 <Button icon={Repeat} hotkey="d" hotkeyLabel="Scan the last sticker again (duplicate test)" onClick={scanSameAgain} disabled={scanned === 0} title="Scans the last sticker again to show the duplicate rejection">Duplicate test</Button>
                 <Button icon={Undo2} hotkey="z" hotkeyLabel="Undo the last scan" onClick={undo} disabled={scanned === 0}>Undo last</Button>
               </div>
@@ -257,13 +283,13 @@ export function CargoBuilder({ dispatch, order, onLoadNext, actions }: { dispatc
       {/* ---------------- gate */}
       {gateOpen && (
         <div ref={gateRef} className="grid gap-[var(--gap)] compact:lg:grid-cols-2 items-start scroll-mb-4">
-          <ScaleWidget key={scaleRun} autoStart={scaleRun > 0} targetKg={targetKg} onReading={onReading} disabled={scanned === 0} title="Gate scale" model={scanned === 0 ? 'Scan a bundle first' : 'Lorry on the scale, then read'} />
-          <Panel icon={ShieldCheck} title="Gate check" sub="a pass needs both"
+          <ScaleWidget key={scaleRun} autoStart={scaleRun > 0} targetKg={targetKg} onReading={onReading} disabled={scanned === 0} title="Step 3 · Weigh Lorry at Gate Scale" model={scanned === 0 ? 'Scan bundles first' : 'Read the scale and use the reading'} />
+          <Panel icon={ShieldCheck} title="Gate Verification Check" sub="both checks must pass to issue a gate pass"
             footer={<div className="flex flex-wrap items-center justify-between gap-2"><span>Presenter drill</span><Button size="sm" variant={missing10 ? 'danger' : 'secondary'} icon={Weight} hotkey="x" hotkeyLabel="Simulate 10 bundles missing from the lorry" onClick={toggleMissing} aria-pressed={missing10} title="Presenter: the lorry really carries 10 bundles fewer than scanned">{missing10 ? 'Simulating 10 bundles missing' : 'Simulate 10 bundles missing'}</Button></div>}>
             <CheckRow state={complete ? 'ok' : scanned ? 'warn' : 'wait'} title="Every ordered bundle is scanned" value={`${scanned} / ${ordered}`} />
             <CheckRow state="wait" title={<>Scale within ±{tol}% of <span className="num">{fmtKg(Math.round(dispatch.expectedKg))}</span></>} value="not weighed" />
             <div className="mt-3"><Gauge variancePct={undefined} tolerancePct={tol} width={520} /></div>
-            <div className="touch:hidden flex flex-wrap items-center gap-x-1.5 gap-y-1 t-xs text-[var(--text-3)] mt-2.5"><Kbd keys="w" />reads the scale<Kbd keys="mod+enter" className="ml-2" />uses the stable reading</div>
+            <div className="t-xs text-[var(--text-3)] mt-2.5">Click <b>Read scale</b> on the left, then click <b>Use reading</b> to verify the lorry weight against the scanned manifest.</div>
             {!complete && scanned > 0 && <Note tone="warn" className="mt-3">Short load: {scanned} of {ordered} bundles scanned. The gate will hold this lorry until the manifest is complete or the Site Manager overrides.</Note>}
             {missing10 && <Note tone="bad" className="mt-3">Presenter mode: every sticker was scanned, but ten bundles never made it onto the lorry. Only the scale can catch this.</Note>}
           </Panel>

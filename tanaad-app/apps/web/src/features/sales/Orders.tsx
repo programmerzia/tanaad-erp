@@ -1,499 +1,130 @@
-import { useMemo, useState } from 'react';
-import {
-  Check,
-  FileText,
-  Lock,
-  Minus,
-  Plus,
-  ShoppingCart,
-} from 'lucide-react';
-import { expectedCargoKg } from '@tanaad/domain';
+import { useEffect, useMemo, useState } from 'react';
+import { BarChart3, Download, Lock, PackageCheck, Plus, Receipt, ShieldCheck, Wallet, Workflow } from 'lucide-react';
+import type { Order } from '@tanaad/domain';
 import { useStore } from '@/data/store';
-import { useGo, useQueryParam, useSite } from '@/app/hooks';
-import { clientBalance, orderTotal } from '@/data/selectors';
-import { fmtDayShort, fmtKg, fmtMoney, fmtNum } from '@/data/format';
-import { Avatar, cn } from '@/components/ui';
-import {
-  ChoiceButton,
-  PaperSheet,
-  SavedBanner,
-  StatusNotice,
-  StepWizard,
-  useSavedBanner,
-} from '@/components/simple';
-import { en } from '@/i18n/en';
-import { clientsForSite, dispatchOf, invoiceOf, priceFor } from './shared';
+import { useQueryParam, useSite } from '@/app/hooks';
+import { orderTotal } from '@/data/selectors';
+import { fmtDateTime, fmtMoney, fmtNum } from '@/data/format';
+import { Badge, Button, DataGrid, Kbd, KpiStrip, MiniBars, PageHeader, Panel, SearchInput, StackedBar, Stat, Tabs, Toolbar, cn, useMedia, type Column } from '@/components/ui';
+import { CountUp } from '@/components/charts';
+import { CASH_ROLES, ClientCell, ORDER_STATUS, StackedMoney, STAGES, STATUS_RANK, StatusBadge, Swatch, ageDays, alsoMoney, bothMoney, clientOf, dispatchOf, downloadCsv, fxLine, invoiceOf, lastWeeks, leadCur, linesSummary, matches, orderBundles, plural, productOf, shortMoney, stageOf, sumByCur, toUsd, weekOf, type StageKey } from './shared';
+import { OrderInspector } from './OrderInspector';
+import { NewOrderSheet } from './NewOrder';
 
-/**
- * Sales · New order:
- * - 3-step wizard: 1. Pick customer, 2. Pick products & bundles, 3. Check & save order
- * - Paper Customer Orders list below with 1-sentence lock explanations and 1-tap Issue Invoice
- */
+type Filter = StageKey | 'all';
+
+/** Order flow for one site: cash-before-delivery lock for local buyers, CEO approval for export credit, then pick → gate → deliver → invoice → pay. */
 export function Orders() {
-  const s = useStore();
-  const site = useSite();
-  const go = useGo();
-  const clientParam = useQueryParam('client');
-  const { saved, showSaved, clearSaved } = useSavedBanner();
+  const s = useStore(); const site = useSite(); const role = s.session?.role ?? ''; const wide = useMedia('(min-width: 900px)'); const roomy = useMedia('(min-width: 1360px)');
+  const q0 = useQueryParam('q'); const clientParam = useQueryParam('client');
+  const [q, setQ] = useState(q0 ?? ''); const [filter, setFilter] = useState<Filter>('all');
+  const [openId, setOpenId] = useState<string | null>(null); const [creating, setCreating] = useState<{ clientId?: string } | null>(null);
+  useEffect(() => { if (q0 !== undefined) { setQ(q0); setFilter('all'); } }, [q0]);
+  useEffect(() => { if (clientParam) setCreating({ clientId: clientParam }); }, [clientParam]);
 
-  const clients = useMemo(() => clientsForSite(s, site.id), [s, site.id]);
-  const products = useMemo(
-    () => s.products.filter((p) => p.siteId === site.id && p.prices.length > 0),
-    [s.products, site.id],
-  );
+  const all = useMemo(() => s.orders.filter((o) => o.siteId === site.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((o) => {
+    const client = clientOf(s, o.clientId); const inv = invoiceOf(s, o.id); const dsp = dispatchOf(s, o.id);
+    return { o, client, inv, dsp, total: orderTotal(o), bundles: orderBundles(o), stage: stageOf(o.status) };
+  }), [s, site.id]);
+  type R = (typeof all)[number];
+  const inStage = (k: StageKey) => all.filter((r) => r.stage.key === k);
+  const searched = q.trim() ? all.filter((r) => matches(q, r.o.number, r.client?.name, r.client?.country, r.client?.contact, r.inv?.number, r.dsp?.deliveryNoteNo, linesSummary(s, r.o), ORDER_STATUS[r.o.status].label)) : all;
+  const rows = filter === 'all' ? searched : searched.filter((r) => r.stage.key === filter);
+  const open = all.find((r) => r.o.id === openId)?.o; const overlay = !!open || !!creating;
+  const toggle = (k: StageKey) => setFilter((f) => (f === k ? 'all' : k));
+  const money = (list: R[]) => sumByCur(list, (r) => r.total, (r) => r.o.currency);
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [clientId, setClientId] = useState<string | null>(
-    clientParam && clients.some((c) => c.id === clientParam)
-      ? clientParam
-      : (clients[0]?.id ?? null),
-  );
-  // Map of productId -> bundle count
-  const [quantities, setQuantities] = useState<Record<string, number>>(() => {
-    const first = products[0];
-    return first ? { [first.id]: 20 } : {};
-  });
+  // KPI figures
+  const cash = inStage('cash'); const approval = inStage('approval'); const load = inStage('load'); const toInvoice = inStage('toInvoice'); const unpaid = inStage('unpaid');
+  const cashBy = money(cash); const apprBy = money(approval); const toInvBy = money(toInvoice);
+  const unpaidBy = sumByCur(unpaid, (r) => (r.inv?.total ?? r.total) - s.payments.filter((p) => r.inv && p.invoiceId === r.inv.id).reduce((t, p) => t + p.amount, 0), (r) => r.o.currency);
+  const oldestUnpaid = Math.max(0, ...unpaid.map((r) => (r.inv ? ageDays(s.today, r.inv.issuedAt) : 0)));
+  const overdue = unpaid.filter((r) => r.inv && r.client && ageDays(s.today, r.inv.issuedAt) > r.client.creditDays).length;
+  const cCash = leadCur(cashBy, site.currencyPrimary); const cAppr = leadCur(apprBy, 'USD'); const cUnpaid = leadCur(unpaidBy, 'USD');
+  const active = (k: StageKey) => (filter === k ? '!border-[var(--brand)] !bg-[var(--selected)]' : undefined);
 
-  const chosenClient = clients.find((c) => c.id === clientId);
-  const currency = chosenClient?.currencyPref ?? site.currencyPrimary;
+  // Bundles ordered per week
+  const weeks = lastWeeks(s.today, 8);
+  const weekly = weeks.map((w, i) => ({ label: w.label, partial: w.partial, value: all.filter((r) => weekOf(weeks, r.o.createdAt) === i).reduce((t, r) => t + r.bundles, 0) }));
 
-  const lineItems = useMemo(() => {
-    return products
-      .map((p) => {
-        const bundles = quantities[p.id] ?? 0;
-        const lp = priceFor(
-          p,
-          chosenClient ?? {
-            channel: 'local',
-            currencyPref: site.currencyPrimary,
-          },
-          s.fx,
-        );
-        return {
-          product: p,
-          bundles,
-          unitPrice: lp.perBundle,
-          amount: bundles * lp.perBundle,
-        };
-      })
-      .filter((x) => x.bundles > 0);
-  }, [products, quantities, chosenClient, site.currencyPrimary, s.fx]);
-
-  const totalBundles = lineItems.reduce((sum, l) => sum + l.bundles, 0);
-  const totalAmount = lineItems.reduce((sum, l) => sum + l.amount, 0);
-  const cargoKg = expectedCargoKg(
-    lineItems.map((l) => ({
-      bundles: l.bundles,
-      stdBundleWeightKg: l.product.stdBundleWeightKg,
-    })),
-  );
-  const hasUnconfirmedWeight = lineItems.some(
-    (l) => l.product.weightStatus === 'to_be_measured',
-  );
-
-  const setProductBundles = (pid: string, nextBundles: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [pid]: Math.max(0, Math.min(9999, nextBundles)),
-    }));
-  };
-
-  const handleCreateOrder = () => {
-    if (!chosenClient || lineItems.length === 0) return;
-    const status =
-      chosenClient.channel === 'local' ? 'awaiting_cash' : 'awaiting_approval';
-    const created = s.createOrder({
-      siteId: site.id,
-      clientId: chosenClient.id,
-      status,
-      currency,
-      lines: lineItems.map((l) => ({
-        productId: l.product.id,
-        bundles: l.bundles,
-        unitPrice: l.unitPrice,
-      })),
-    });
-
-    showSaved(`Order ${created.number} saved for ${chosenClient.name}`, {
-      detail:
-        chosenClient.channel === 'local'
-          ? `Total ${fmtMoney(totalAmount, currency)}. Waiting for Cashier to confirm cash before loading.`
-          : `Total ${fmtMoney(totalAmount, currency)}. Sent to CEO to approve credit before loading.`,
-    });
-
-    setStep(1);
-  };
-
-  const handleIssueInvoice = (orderId: string) => {
-    const inv = s.issueInvoice(orderId);
-    if (inv) {
-      showSaved(`Invoice ${inv.number} created`, {
-        detail: 'Opening Send an invoice so you can share it on WhatsApp.',
-      });
-      go.site('sales/invoices');
-    }
-  };
-
-  const siteOrders = useMemo(
-    () =>
-      s.orders
-        .filter((o) => o.siteId === site.id)
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [s.orders, site.id],
-  );
-
-  // Plain 1-sentence explanation of each order's state (Principle 9)
-  const explainOrderStatus = (status: string) => {
-    switch (status) {
-      case 'awaiting_cash':
-        return {
-          badge: 'Locked · Waiting for cash',
-          tone: 'warn' as const,
-          sentence:
-            'Locked at the store until the Cashier confirms cash on Money in.',
-        };
-      case 'awaiting_approval':
-        return {
-          badge: 'Locked · Waiting for CEO',
-          tone: 'warn' as const,
-          sentence:
-            'Locked at the store until a CEO approves this export credit order.',
-        };
-      case 'approved':
-      case 'picking':
-        return {
-          badge: 'Ready at store',
-          tone: 'ok' as const,
-          sentence: 'Unlocked. The Storekeeper can load this order onto a lorry.',
-        };
-      case 'dispatched':
-      case 'delivered':
-        return {
-          badge: 'Passed gate · Ready to invoice',
-          tone: 'ok' as const,
-          sentence: 'Lorry passed the gate scale. Ready to send an invoice.',
-        };
-      case 'invoiced':
-        return {
-          badge: 'Invoiced · Waiting for payment',
-          tone: 'warn' as const,
-          sentence: 'Invoice sent. Waiting for customer payment.',
-        };
-      case 'paid':
-        return {
-          badge: 'Paid ✓',
-          tone: 'ok' as const,
-          sentence: 'Completed and paid in full.',
-        };
-      default:
-        return {
-          badge: status,
-          tone: 'warn' as const,
-          sentence: 'Order is on hold.',
-        };
-    }
-  };
+  const cols: Column<R>[] = wide ? [
+    { key: 'no', header: 'Order', sort: (r) => r.o.number, cell: (r) => <span className="code font-medium">{r.o.number}</span> },
+    { key: 'client', header: 'Client', sort: (r) => r.client?.name ?? '', cell: (r) => <ClientCell name={r.client?.name ?? '?'} width={roomy ? 230 : 190} /> },
+    ...(roomy ? [{ key: 'market', header: 'Market', sort: (r: R) => `${r.client?.channel}${r.client?.country}`, cell: (r: R) => <span>{r.client?.country}<span className="text-[var(--text-3)]"> · {r.client?.channel === 'export' ? 'export' : 'local'}</span></span> } as Column<R>] : []),
+    { key: 'lines', header: 'Lines', truncate: 230, cell: (r) => <span className="inline-flex items-center gap-1.5"><span className="inline-flex gap-0.5">{r.o.lines.slice(0, 4).map((l, i) => <Swatch key={i} colour={productOf(s, l.productId)?.colour} className="!size-2" />)}</span><span className="text-[var(--text-2)]" title={linesSummary(s, r.o)}>{linesSummary(s, r.o)}</span></span> },
+    { key: 'bundles', header: 'Bundles', align: 'right', mono: true, sort: (r) => r.bundles, cell: (r) => fmtNum(r.bundles) },
+    { key: 'total', header: 'Total', align: 'right', mono: true, sort: (r) => toUsd(r.total, r.o.currency, r.o.fxReference), cell: (r) => <span className="font-medium">{fmtMoney(r.total, r.o.currency)}</span> },
+    { key: 'created', header: 'Created', mono: true, sort: (r) => r.o.createdAt, cell: (r) => <span className="text-[var(--text-2)]">{fmtDateTime(r.o.createdAt)}</span> },
+    { key: 'status', header: 'Status', sort: (r) => STATUS_RANK[r.o.status] * 10 + STAGES.indexOf(r.stage), cell: (r) => (r.o.status === 'awaiting_cash' ? <Badge tone="warn"><Lock className="size-3" />Awaiting cashier</Badge> : <StatusBadge status={r.o.status} />) },
+  ] : [
+    { key: 'no', header: 'Order', wrap: true, cell: (r) => <div className="min-w-0 py-1"><div className="flex items-center gap-1.5"><span className="code font-medium">{r.o.number}</span>{r.o.status === 'awaiting_cash' && <Lock className="size-3.5 text-[var(--warn)]" aria-label="Awaiting cashier" />}</div><div className="t-sm text-[var(--text-2)] truncate max-w-[42vw]">{r.client?.name}</div></div> },
+    { key: 'total', header: 'Total', align: 'right', wrap: true, cell: (r) => <div className="flex flex-col items-end gap-1 py-1"><span className="num font-medium whitespace-nowrap">{fmtMoney(r.total, r.o.currency)}</span><StatusBadge status={r.o.status} /></div> },
+  ];
+  const shownBy = money(rows);
+  const exportCsv = () => downloadCsv(`orders-${site.id}-${s.today}.csv`, ['Order', 'Client', 'Country', 'Channel', 'Lines', 'Bundles', 'Total', 'Currency', 'Created', 'Status', 'Invoice', 'Delivery note'],
+    rows.map((r) => [r.o.number, r.client?.name ?? '', r.client?.country ?? '', r.client?.channel ?? '', linesSummary(s, r.o), r.bundles, r.total, r.o.currency, r.o.createdAt, ORDER_STATUS[r.o.status].label, r.inv?.number ?? '', r.dsp?.deliveryNoteNo ?? '']));
 
   return (
-    <div className="flex flex-col gap-5 max-w-[860px] mx-auto">
-      <SavedBanner info={saved} onDismiss={clearSaved} />
+    <div>
+      <PageHeader eyebrow={`Sales · ${site.name}`} title="Orders"
+        meta={<><Badge tone="neutral">{plural(all.length, 'order')}</Badge><Badge tone="neutral" className="num">{fxLine(s.fx)}</Badge></>}
+        subtitle="Local orders unlock for dispatch on cash, export orders on CEO approval."
+        actions={<>
+          <Button icon={Download} onClick={exportCsv} hotkey={overlay ? undefined : 'e'} hotkeyLabel="Export orders to CSV">Export</Button>
+          <Button variant="primary" icon={Plus} onClick={() => setCreating({})} hotkey={overlay ? undefined : 'n'}>New order</Button>
+        </>} />
 
-      <div className="paper-sheet p-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="t-sm font-semibold text-[var(--text-2)]">
-            {site.name} · Sales
-          </div>
-          <h1 className="t-title text-[var(--text)] mt-0.5">
-            {en.sales.newOrderTitle}
-          </h1>
-          <p className="t-base text-[var(--text-2)] mt-0.5">
-            {en.sales.newOrderSubtitle}
-          </p>
-        </div>
-        <span className="px-3.5 py-1.5 rounded-[8px] bg-[var(--surface-2)] border border-[var(--line-2)] t-sm font-bold num">
-          {siteOrders.length} orders on book
-        </span>
+      <KpiStrip className="mb-[var(--gap)]">
+        <Stat label="Awaiting cash" icon={Lock} accent={STAGES[0].color} className={active('cash')} onClick={() => toggle('cash')}
+          value={<CountUp value={cashBy[cCash]} format={(n) => shortMoney(n, cCash)} />}
+          sub={cash.length ? `${plural(cash.length, 'order')} · warehouse locked ${alsoMoney(cashBy, cCash)}` : 'No order is waiting for cash'} />
+        <Stat label="Awaiting CEO approval" icon={ShieldCheck} accent={STAGES[1].color} className={active('approval')} onClick={() => toggle('approval')}
+          value={<CountUp value={apprBy[cAppr]} format={(n) => shortMoney(n, cAppr)} />}
+          sub={approval.length ? `${plural(approval.length, 'export order')} · credit desk ${alsoMoney(apprBy, cAppr)}` : 'None at the credit desk'} />
+        <Stat label="Ready to load" icon={PackageCheck} accent={STAGES[2].color} className={active('load')} onClick={() => toggle('load')}
+          value={<><CountUp value={load.length} /><span className="t-base font-medium text-[var(--text-3)]"> {load.length === 1 ? 'order' : 'orders'}</span></>}
+          sub={load.length ? `${plural(load.reduce((t, r) => t + r.bundles, 0), 'bundle')} · ${load.filter((r) => r.o.status === 'picking').length} being picked` : 'Nothing waiting at the store'} />
+        <Stat label="Dispatched, not invoiced" icon={Receipt} accent={STAGES[3].color} tone={toInvoice.length ? 'warn' : 'neutral'} className={active('toInvoice')} onClick={() => toggle('toInvoice')}
+          value={<><CountUp value={toInvoice.length} /><span className="t-base font-medium text-[var(--text-3)]"> {toInvoice.length === 1 ? 'order' : 'orders'}</span></>}
+          sub={toInvoice.length ? `${bothMoney(toInvBy)} to invoice` : 'All dispatches invoiced'} />
+        <Stat label="Invoiced, unpaid" icon={Wallet} accent={STAGES[4].color} tone={overdue ? 'bad' : 'neutral'} className={active('unpaid')} onClick={() => toggle('unpaid')}
+          value={<CountUp value={unpaidBy[cUnpaid]} format={(n) => shortMoney(n, cUnpaid)} />}
+          sub={unpaid.length ? `${plural(unpaid.length, 'invoice')} · oldest ${oldestUnpaid} days${overdue ? ` · ${overdue} past terms` : ''} ${alsoMoney(unpaidBy, cUnpaid)}` : 'Nothing outstanding'} />
+      </KpiStrip>
+
+      <div className="grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_340px] mb-[var(--gap)]">
+        <Panel icon={Workflow} title="Order pipeline" sub={`${plural(all.length, 'order')} by stage`}>
+          <StackedBar height={12} legend={false} segments={STAGES.map((st) => ({ label: st.label, value: inStage(st.key).length, color: st.color }))} />
+          <div className="@container"><div className="mt-2 grid gap-x-2 gap-y-1 grid-cols-2 @md:grid-cols-4 @2xl:grid-cols-7 items-stretch">
+            {STAGES.map((st) => { const list = inStage(st.key); return (
+              <button key={st.key} type="button" onClick={() => toggle(st.key)} aria-pressed={filter === st.key} title={`Show ${st.label.toLowerCase()}`} className={cn('flex flex-col items-stretch justify-start text-left min-w-0 rounded-md px-2 py-1 hover:bg-[var(--hover)]', filter === st.key && 'bg-[var(--selected)]')}>
+                <span className="flex items-center gap-1.5 t-xs text-[var(--text-2)]"><span className="size-2 rounded-[2px] shrink-0" style={{ background: st.color }} /><span className="truncate">{st.short}</span></span>
+                <span className={cn('block num t-lg font-semibold', !list.length && 'text-[var(--text-4)]')}>{list.length}</span>
+                {(['USD', 'UGX'] as const).filter((c) => money(list)[c] > 0).map((c) => <span key={c} className="block num t-xs text-[var(--text-3)] truncate">{shortMoney(money(list)[c], c)}</span>)}
+              </button>
+            ); })}
+          </div></div>
+        </Panel>
+        <Panel icon={BarChart3} title="Bundles ordered" sub="per week · last 8 weeks">
+          <MiniBars height={44} data={weekly} format={(n) => `${fmtNum(n)} bundles`} />
+        </Panel>
       </div>
 
-      {/* ====================================================================
-       * STEP 1 OF 3: PICK CUSTOMER
-       * ==================================================================== */}
-      {step === 1 && (
-        <StepWizard
-          step={1}
-          totalSteps={3}
-          title="Who is buying?"
-          subtitle="Tap the customer below."
-          canNext={Boolean(chosenClient)}
-          nextHint="Pick a customer first."
-          onNext={() => setStep(2)}
-        >
-          <div className="grid gap-2.5 sm:grid-cols-2">
-            {clients.map((c) => {
-              const bal = clientBalance(s, c.id);
-              return (
-                <ChoiceButton
-                  key={c.id}
-                  selected={clientId === c.id}
-                  avatarName={c.name}
-                  title={c.name}
-                  subtitle={`${c.country} · ${c.channel === 'export' ? `Credit (${c.creditDays} days)` : 'Cash before delivery'}`}
-                  badge={
-                    bal.balance > 0 ? (
-                      <span className="px-2 py-0.5 rounded-[5px] bg-[var(--warn-bg)] text-[var(--warn)] t-xs font-bold num">
-                        Owes {fmtMoney(bal.balance, c.currencyPref)}
-                      </span>
-                    ) : undefined
-                  }
-                  onClick={() => setClientId(c.id)}
-                />
-              );
-            })}
-          </div>
-        </StepWizard>
-      )}
+      <Toolbar right={<span className="t-sm text-[var(--text-3)] num">{rows.length === all.length ? plural(all.length, 'order') : `${rows.length} of ${all.length}`}</span>}>
+        <SearchInput value={q} onChange={setQ} placeholder="Search order, client, product…" />
+        <Tabs value={filter} onChange={setFilter} tabs={[{ value: 'all' as Filter, label: 'All', count: searched.length }, ...STAGES.map((st) => ({ value: st.key as Filter, label: st.tab, count: searched.filter((r) => r.stage.key === st.key).length }))]} />
+      </Toolbar>
 
-      {/* ====================================================================
-       * STEP 2 OF 3: PICK PRODUCTS & BUNDLE COUNTS
-       * ==================================================================== */}
-      {step === 2 && chosenClient && (
-        <StepWizard
-          step={2}
-          totalSteps={3}
-          title="What products and how many bundles?"
-          subtitle="Use − and + or quick buttons to set the bundles for each product."
-          summaryStrip={
-            <span>
-              Customer: <b>{chosenClient.name}</b> ({chosenClient.country}) ·
-              Currency: <b>{currency}</b>
-            </span>
-          }
-          canNext={totalBundles > 0}
-          nextHint="Add at least 1 bundle to the order."
-          onBack={() => setStep(1)}
-          onNext={() => setStep(3)}
-        >
-          <div className="flex flex-col gap-3">
-            {products.map((p) => {
-              const count = quantities[p.id] ?? 0;
-              const lp = priceFor(p, chosenClient, s.fx);
-              return (
-                <div
-                  key={p.id}
-                  className={cn(
-                    'rounded-[10px] border p-4 flex flex-wrap items-center justify-between gap-4',
-                    count > 0
-                      ? 'bg-[var(--ok-bg)]/35 border-[var(--ok)]'
-                      : 'bg-[var(--surface)] border-[var(--line-2)]',
-                  )}
-                >
-                  <div className="flex items-center gap-3 min-w-[200px] flex-1">
-                    <span
-                      className="size-6 rounded-[6px] border border-black/15 shrink-0"
-                      style={{ background: p.colour ?? '#888' }}
-                    />
-                    <div>
-                      <div className="t-lg font-bold text-[var(--text)]">
-                        {p.internalName}
-                      </div>
-                      <div className="t-sm text-[var(--text-2)] num">
-                        {fmtMoney(lp.perBundle, currency)} per bundle ({p.bundlePieces} pcs)
-                      </div>
-                    </div>
-                  </div>
+      <DataGrid rows={rows} columns={cols} rowKey={(r) => r.o.id} onRowClick={(r) => setOpenId(r.o.id)} selectedKey={openId} maxHeight={wide ? 520 : undefined}
+        rowClassName={(r) => (r.o.status === 'held' ? 'text-[var(--text-3)]' : undefined)}
+        empty={q.trim() ? `No order matches “${q.trim()}”${filter !== 'all' ? ' in this stage' : ''}.` : filter === 'cash' ? 'No order is waiting for cash. New local orders appear here until the cashier records it.' : filter === 'approval' ? 'No export order is waiting for the CEO.' : filter === 'held' ? 'No orders are held.' : 'No orders in this stage. They move here automatically as they progress.'}
+        footer={rows.length > 0 ? (wide
+          ? <tr><td colSpan={roomy ? 4 : 3}>{plural(rows.length, 'order')}</td><td className="text-right num">{fmtNum(rows.reduce((t, r) => t + r.bundles, 0))}</td><td className="text-right py-1"><StackedMoney by={shownBy} /></td><td colSpan={2} /></tr>
+          : <tr><td>{plural(rows.length, 'order')}</td><td className="text-right py-1"><StackedMoney by={shownBy} /></td></tr>) : undefined} />
+      {CASH_ROLES.includes(role) && cash.length > 0 && <p className="t-xs text-[var(--text-3)] mt-2 touch:hidden">Open an order that is awaiting cash with <Kbd keys="enter" /> then press <Kbd keys="mod+enter" /> to record it.</p>}
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setProductBundles(p.id, count - 5)}
-                      className="size-11 rounded-[8px] border border-[var(--line-2)] bg-[var(--surface-2)] hover:bg-[var(--hover)] grid place-items-center font-bold"
-                    >
-                      <Minus className="size-5" />
-                    </button>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      aria-label={`Bundles of ${p.internalName}`}
-                      value={count}
-                      onChange={(e) =>
-                        setProductBundles(
-                          p.id,
-                          Number(e.target.value.replace(/\D/g, '')) || 0,
-                        )
-                      }
-                      className="w-[76px] h-11 rounded-[8px] border border-[var(--line-2)] bg-[var(--surface)] text-center t-lg font-bold num"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setProductBundles(p.id, count + 5)}
-                      className="size-11 rounded-[8px] border border-[var(--line-2)] bg-[var(--surface-2)] hover:bg-[var(--hover)] grid place-items-center font-bold"
-                    >
-                      <Plus className="size-5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setProductBundles(p.id, count + 20)}
-                      className="ctl-sm px-3 rounded-[8px] border border-[var(--line-2)] bg-[var(--surface)] hover:bg-[var(--hover)] font-bold t-sm num"
-                    >
-                      +20
-                    </button>
-                  </div>
-
-                  <div className="min-w-[130px] text-right num t-lg font-bold">
-                    {fmtMoney(count * lp.perBundle, currency)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </StepWizard>
-      )}
-
-      {/* ====================================================================
-       * STEP 3 OF 3: CHECK ORDER & SAVE
-       * ==================================================================== */}
-      {step === 3 && chosenClient && (
-        <StepWizard
-          step={3}
-          totalSteps={3}
-          title="Check the order and save"
-          subtitle="Confirm the items and total below."
-          summaryStrip={
-            <span>
-              Customer: <b>{chosenClient.name}</b> · Total bundles:{' '}
-              <b className="num">{fmtNum(totalBundles)}</b>
-            </span>
-          }
-          canNext={lineItems.length > 0}
-          nextLabel={en.sales.saveOrder}
-          isFinalStep
-          finalTone="ok"
-          onBack={() => setStep(2)}
-          onNext={handleCreateOrder}
-        >
-          <div className="flex flex-col gap-4">
-            <div className="rounded-[10px] border border-[var(--line-2)] bg-[var(--surface-2)] p-4 divide-y divide-[var(--line)]">
-              {lineItems.map((l) => (
-                <div
-                  key={l.product.id}
-                  className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
-                >
-                  <div>
-                    <div className="t-base font-bold">{l.product.internalName}</div>
-                    <div className="t-sm text-[var(--text-2)] num">
-                      {l.bundles} bundles × {fmtMoney(l.unitPrice, currency)}
-                    </div>
-                  </div>
-                  <span className="num t-lg font-bold">
-                    {fmtMoney(l.amount, currency)}
-                  </span>
-                </div>
-              ))}
-              <div className="pt-3 flex items-baseline justify-between gap-3">
-                <span className="t-base font-bold text-[var(--text-2)]">
-                  Expected cargo weight:{' '}
-                  <b className="num text-[var(--text)]">
-                    {fmtKg(Math.round(cargoKg))}
-                  </b>
-                  {hasUnconfirmedWeight ? ' (bundle weights to be confirmed)' : ''}
-                </span>
-                <span className="text-[28px] font-bold num text-[var(--ok)]">
-                  {fmtMoney(totalAmount, currency)}
-                </span>
-              </div>
-            </div>
-
-            <StatusNotice
-              tone="warn"
-              title={
-                chosenClient.channel === 'local'
-                  ? 'What happens next: Cashier confirms cash'
-                  : 'What happens next: CEO approves credit'
-              }
-            >
-              {chosenClient.channel === 'local'
-                ? 'Because this is a local buyer, the store stays locked until the Cashier confirms the cash.'
-                : 'Because this is an export credit buyer, the store stays locked until a CEO approves the order.'}
-            </StatusNotice>
-          </div>
-        </StepWizard>
-      )}
-
-      {/* Paper Customer Orders Book */}
-      <PaperSheet
-        title="Customer Orders Book"
-        subtitle="Shows every order and who can unlock or invoice it."
-        pad={false}
-      >
-        <div className="divide-y divide-[var(--line)]">
-          {siteOrders.slice(0, 10).map((ord) => {
-            const c = s.clients.find((x) => x.id === ord.clientId);
-            const total = orderTotal(ord);
-            const inv = invoiceOf(s, ord.id);
-            const dsp = dispatchOf(s, ord.id);
-            const info = explainOrderStatus(ord.status);
-            const canIssueInvoice =
-              !inv &&
-              (ord.status === 'dispatched' || ord.status === 'delivered');
-
-            return (
-              <div
-                key={ord.id}
-                className="px-5 py-4 flex flex-wrap items-center justify-between gap-4"
-              >
-                <div className="flex items-start gap-3 min-w-[240px] flex-1">
-                  <Avatar name={c?.name ?? '?'} size={38} />
-                  <div>
-                    <div className="t-base font-bold text-[var(--text)] flex flex-wrap items-center gap-2">
-                      <span>{c?.name}</span>
-                      <span className="code t-sm text-[var(--text-2)]">
-                        {ord.number}
-                      </span>
-                      <span
-                        className={cn(
-                          'px-2.5 py-0.5 rounded-[5px] t-xs font-bold inline-flex items-center gap-1',
-                          info.tone === 'ok'
-                            ? 'bg-[var(--ok-bg)] text-[var(--ok)]'
-                            : 'bg-[var(--warn-bg)] text-[var(--warn)]',
-                        )}
-                      >
-                        {(ord.status === 'awaiting_cash' ||
-                          ord.status === 'awaiting_approval') && (
-                          <Lock className="size-3" />
-                        )}
-                        {info.badge}
-                      </span>
-                    </div>
-                    <div className="t-sm text-[var(--text-2)] mt-0.5">
-                      {info.sentence}
-                    </div>
-                    <div className="t-xs text-[var(--text-3)] num mt-0.5">
-                      {fmtDayShort(ord.createdAt.slice(0, 10))}
-                      {dsp ? ` · Delivery note ${dsp.deliveryNoteNo}` : ''}
-                      {inv ? ` · Invoice ${inv.number}` : ''}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="num t-lg font-bold">
-                    {fmtMoney(total, ord.currency)}
-                  </span>
-                  {canIssueInvoice && (
-                    <button
-                      type="button"
-                      onClick={() => handleIssueInvoice(ord.id)}
-                      className="ctl-sm px-4 rounded-[8px] bg-[var(--brand)] text-white font-bold t-sm inline-flex items-center gap-1.5"
-                    >
-                      <FileText className="size-4" /> Create invoice
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </PaperSheet>
+      {open && <OrderInspector key={open.id} order={open} onClose={() => setOpenId(null)} />}
+      {creating && <NewOrderSheet initialClientId={creating.clientId} onClose={() => setCreating(null)} onCreated={(o: Order) => { setCreating(null); setFilter('all'); setQ(''); setOpenId(o.id); }} />}
     </div>
   );
 }
