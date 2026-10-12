@@ -1,213 +1,656 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Banknote, BarChart3, Camera, CheckCircle2, ClipboardList, MessageCircle, Receipt, Scale, UserPlus, Wallet, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Banknote,
+  Camera,
+  Check,
+  CheckCircle2,
+  MessageCircle,
+  Scale,
+  UserPlus,
+} from 'lucide-react';
 import type { CollectorDelivery } from '@tanaad/domain';
 import { intakeNet } from '@tanaad/domain';
 import { useStore } from '@/data/store';
-import { useGo, useRefList } from '@/app/hooks';
-import { intakeToday, lastWorkingDays } from '@/data/selectors';
-import { Avatar, Badge, Button, ChipGroup, Combobox, DataGrid, Empty, FormRow, IconButton, Input, Kbd, Note, NumberPad, PageHeader, Panel, Sheet, Stat, cn, useHotkey, type Column, type ComboOption } from '@/components/ui';
-import { ColumnChart, CountUp } from '@/components/charts';
+import { useRefList, useSite } from '@/app/hooks';
+import { intakeToday } from '@/data/selectors';
+import { fmtDayShort, fmtKg, fmtNum, fmtTime, fmtUGX } from '@/data/format';
+import { Avatar, Input, Sheet, cn } from '@/components/ui';
 import { ScaleWidget } from '@/components/ScaleWidget';
 import { QR } from '@/components/Sticker';
 import { WhatsAppPreview } from '@/components/WhatsAppPreview';
 import { messaging } from '@/devices';
-import { compact, fmtDayLong, fmtDayShort, fmtKg, fmtNum, fmtUGX } from '@/data/format';
-import { amountOf, Calc, FormSection, ScaleBay, SettingsEmpty, useFirstField, useScaleKey, useScaleTitle, useShift, voucherNo, WIDE, Workbench } from './kit';
-import { fmtTime } from './kit';
+import {
+  ChoiceButton,
+  LargeKeypad,
+  PaperSheet,
+  SavedBanner,
+  StatusNotice,
+  StepWizard,
+  useSavedBanner,
+} from '@/components/simple';
+import { en } from '@/i18n/en';
+import { amountOf, voucherNo } from './kit';
 
-const kg1 = (n: number) => n.toLocaleString('en-UG', { maximumFractionDigits: 1 });
-const NEW = '__new'; const CUSTOM = '__custom';
-/** Demo scale only: a plausible lorry or sack load for the simulated reading. */
-const rnd = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
-
-/** The voucher as the collector will hold it: number, who, when, the weights, the sum. Shown as a draft while the lorry is on the scale. */
-function VoucherDoc({ issuer, no, collector, when, gross, tare, dedPct, net, price, amount, status, photo }: { issuer: string; no: string; collector: string; when: string; gross: number; tare: number; dedPct: number; net: number; price: number; amount: number; status: 'draft' | 'unpaid' | 'paid'; photo: boolean }) {
-  const dedKg = Math.max(0, Math.round((Math.max(0, gross - tare) - net) * 10) / 10);
-  const line = 'flex items-baseline justify-between gap-3 h-6 t-base';
-  return (
-    <div className="rounded-lg border border-[var(--line-2)] bg-[var(--surface)] overflow-hidden">
-      <div className="px-3.5 pt-3 pb-2.5 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="t-label truncate">{issuer}</div>
-          <div className="t-lg font-semibold">Weigh-in voucher</div>
-          <div className="code t-sm text-[var(--text-2)] mt-0.5">{no}</div>
-        </div>
-        {status === 'draft'
-          ? <div className="size-[60px] rounded-md border border-dashed border-[var(--line-2)] grid place-items-center text-center t-xs text-[var(--text-3)] leading-tight shrink-0">Code on issue</div>
-          : <div className="p-1 rounded-sm bg-white shrink-0"><QR value={no} size={52} /></div>}
-      </div>
-      <div className="px-3.5 py-2 border-t border-dashed border-[var(--line-2)] flex items-start justify-between gap-3">
-        <div className="min-w-0"><div className="t-xs text-[var(--text-3)]">Collector</div><div className="t-base font-semibold truncate">{collector || <span className="font-normal text-[var(--text-4)]">Not selected</span>}</div></div>
-        <div className="text-right shrink-0"><div className="t-xs text-[var(--text-3)]">Weighed</div><div className="t-base num">{when}</div></div>
-      </div>
-      <div className="px-3.5 py-2 border-t border-dashed border-[var(--line-2)]">
-        <div className={line}><span className="text-[var(--text-2)]">Gross on the scale</span><span className="num">{fmtKg(gross)}</span></div>
-        <div className={line}><span className="text-[var(--text-2)]">Tare</span><span className="num">− {fmtKg(tare)}</span></div>
-        <div className={line}><span className="text-[var(--text-2)]">Deduction {dedPct}%</span><span className="num">− {fmtKg(dedKg)}</span></div>
-        <div className={cn(line, 'border-t border-[var(--line)] mt-1 pt-1 h-7 font-semibold')}><span>Net weight</span><span className="num">{fmtKg(net)}</span></div>
-        <div className={line}><span className="text-[var(--text-2)]">Price</span><span className="num">× {fmtUGX(price)} per kg</span></div>
-      </div>
-      <div className="px-3.5 py-2.5 border-t border-[var(--line-2)] bg-[var(--surface-2)] flex items-end justify-between gap-3">
-        <div className="min-w-0"><div className="t-label">Amount payable</div><div className="t-xs text-[var(--text-3)] flex items-center gap-1">{photo && <Camera className="size-3 shrink-0" />}{status === 'paid' ? 'Paid in cash' : status === 'unpaid' ? 'Payable at the plant office' : 'Not issued yet'}{photo ? ' · scale photo on file' : ''}</div></div>
-        <div className="num t-kpi whitespace-nowrap">{fmtUGX(amount)}</div>
-      </div>
-    </div>
-  );
-}
-
-/** R1 · Collector intake and weigh-in: gross, tare, deduction, net, price, voucher. The deduction rule is the client's to confirm. */
+/**
+ * Flow 9 · Weigh in scrap (recycling):
+ * "who delivered, weight on the scale, deductions, what we pay."
+ * Recycling deduction rules are labelled "to be confirmed" per Section 7.
+ */
 export function Intake() {
-  const s = useStore(); const go = useGo(); const { today, site } = useShift();
-  const collectors = useMemo(() => [...new Set(s.collectorDeliveries.map((d) => d.collector))].sort(), [s.collectorDeliveries]);
-  const [collector, setCollector] = useState<string | null>(null); const [newName, setNewName] = useState(''); const [adding, setAdding] = useState(false);
-  const [gross, setGross] = useState<number | null>(null); const [target, setTarget] = useState(() => rnd(600, 2400)); const [round, setRound] = useState(0);
-  const dedOptions = useRefList('deduction_option'); const priceOptions = useRefList('price_option');
-  const [tare, setTare] = useState('');
-  const [dedId, setDedId] = useState<string | null>(null); const [customOn, setCustomOn] = useState(false); const [custom, setCustom] = useState(''); const [priceId, setPriceId] = useState<string | null>(null); const [photo, setPhoto] = useState(false);
-  // The first option of each list (the order set in Settings) is the starting choice; a known collector starts from the terms of their last delivery.
-  useEffect(() => { if (!dedOptions.some((o) => o.id === dedId)) setDedId(dedOptions[0]?.id ?? null); }, [dedOptions, dedId]);
-  useEffect(() => { if (!priceOptions.some((o) => o.id === priceId)) setPriceId(priceOptions[0]?.id ?? null); }, [priceOptions, priceId]);
-  const deduction = dedOptions.find((o) => o.id === dedId)?.value ?? 0; const price = priceOptions.find((o) => o.id === priceId)?.value ?? 0;
-  const [voucher, setVoucher] = useState<CollectorDelivery | null>(null); const [share, setShare] = useState(false); const [sentId, setSentId] = useState<string | null>(null);
-  const [formRef, focusFirst] = useFirstField<HTMLDivElement>(); const scaleRef = useRef<HTMLDivElement>(null);
-  useScaleKey(scaleRef); const scaleTitle = useScaleTitle('Intake scale');
+  const s = useStore();
+  const site = useSite();
+  const today = s.today;
+  const { saved, showSaved, clearSaved } = useSavedBanner();
 
-  const dedPct = customOn ? parseFloat(custom) || 0 : deduction; const tareKg = parseFloat(tare || '0') || 0;
-  const live = intakeNet({ grossKg: gross ?? 0, tareKg, deductionPct: dedPct, pricePerKg: price });
-  const clean = Math.max(0, (gross ?? 0) - tareKg); const dedKg = Math.max(0, Math.round((clean - live.netKg) * 10) / 10);
-  const who = adding ? newName.trim() : collector;
-  const ready = !!who && !!gross && gross > tareKg && price > 0 && photo;
-  const missing = [!who && 'a collector', !gross && 'the gross weight', !!gross && gross <= tareKg && 'a gross above the tare', price <= 0 && 'a price per kg', !photo && 'the scale photo'].filter((x): x is string => !!x);
-  const todays = intakeToday(s, today).sort((a, b) => b.at.localeCompare(a.at)); const unpaid = s.collectorDeliveries.filter((d) => !d.paid).sort((a, b) => a.at.localeCompare(b.at));
-  const current = voucher ? s.collectorDeliveries.find((d) => d.id === voucher.id) ?? voucher : null;
-  const days = lastWorkingDays('recycling', today, 10); const netByDay = days.map((d) => Math.round(s.collectorDeliveries.filter((x) => x.day === d).reduce((t, x) => t + x.netKg, 0)));
-  const todayNet = todays.reduce((t, d) => t + d.netKg, 0); const todayAmount = todays.reduce((t, d) => t + amountOf(d), 0); const unpaidTotal = unpaid.reduce((t, d) => t + amountOf(d), 0);
-  const history = collector && !adding ? s.collectorDeliveries.filter((d) => d.collector === collector) : [];
-  const draftNo = `RV-${today.slice(2).replace(/-/g, '')}-${String(todays.length + 1).padStart(2, '0')}`;
-  const no = (d: CollectorDelivery) => voucherNo(d, s.collectorDeliveries);
+  const dedOptions = useRefList('deduction_option');
+  const priceOptions = useRefList('price_option');
 
-  const options = useMemo<ComboOption<string>[]>(() => [
-    ...collectors.map((c) => { const n = s.collectorDeliveries.filter((d) => d.collector === c).length; return { value: c, label: c, sub: `${n} deliver${n === 1 ? 'y' : 'ies'}`, left: <Avatar name={c} size={18} /> }; }),
-    { value: NEW, label: 'New collector…', left: <UserPlus className="size-4 text-[var(--text-3)]" />, words: 'add new' },
-  ], [collectors, s.collectorDeliveries]);
-  const pickCollector = (v: string | null) => {
-    setVoucher(null); if (v === NEW) { setAdding(true); setCollector(null); return; }
-    setAdding(false); setCollector(v);
-    const lastOne = v ? s.collectorDeliveries.filter((d) => d.collector === v).sort((a, b) => b.at.localeCompare(a.at))[0] : undefined;
-    if (lastOne) { const d = dedOptions.find((o) => o.value === lastOne.deductionPct); if (d) { setDedId(d.id); setCustomOn(false); setCustom(''); } const p = priceOptions.find((o) => o.value === lastOne.pricePerKg); if (p) setPriceId(p.id); setTare(String(lastOne.tareKg)); }
+  const collectors = useMemo(
+    () => [...new Set(s.collectorDeliveries.map((d) => d.collector))].sort(),
+    [s.collectorDeliveries],
+  );
+
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [collector, setCollector] = useState<string | null>(
+    collectors[0] ?? null,
+  );
+  const [addingNew, setAddingNew] = useState(false);
+  const [newCollectorName, setNewCollectorName] = useState('');
+
+  const [grossKg, setGrossKg] = useState<number | null>(null);
+  const [scalePhoto, setScalePhoto] = useState(true);
+  const [scaleRound, setScaleRound] = useState(0);
+  const [targetKg, setTargetKg] = useState(1150);
+
+  const [tareStr, setTareStr] = useState('20');
+  const [dedId, setDedId] = useState<string | null>(
+    dedOptions[0]?.id ?? null,
+  );
+  const [priceId, setPriceId] = useState<string | null>(
+    priceOptions[0]?.id ?? null,
+  );
+
+  const [issuedVoucher, setIssuedVoucher] = useState<CollectorDelivery | null>(
+    null,
+  );
+  const [waOpen, setWaOpen] = useState(false);
+  const [waSent, setWaSent] = useState(false);
+
+  useEffect(() => {
+    if (!dedOptions.some((o) => o.id === dedId)) {
+      setDedId(dedOptions[0]?.id ?? null);
+    }
+  }, [dedOptions, dedId]);
+
+  useEffect(() => {
+    if (!priceOptions.some((o) => o.id === priceId)) {
+      setPriceId(priceOptions[0]?.id ?? null);
+    }
+  }, [priceOptions, priceId]);
+
+  const who = addingNew ? newCollectorName.trim() : (collector ?? '');
+  const tareKg = Math.max(0, Number(tareStr) || 0);
+  const deductionPct = dedOptions.find((o) => o.id === dedId)?.value ?? 0;
+  const pricePerKg = priceOptions.find((o) => o.id === priceId)?.value ?? 0;
+
+  const liveCalc = intakeNet({
+    grossKg: grossKg ?? 0,
+    tareKg,
+    deductionPct,
+    pricePerKg,
+  });
+  const cleanKg = Math.max(0, (grossKg ?? 0) - tareKg);
+  const deductedKg = Math.max(
+    0,
+    Math.round((cleanKg - liveCalc.netKg) * 10) / 10,
+  );
+
+  const todaysDeliveries = useMemo(
+    () =>
+      intakeToday(s, today).sort((a, b) => b.at.localeCompare(a.at)),
+    [s, today],
+  );
+
+  const handlePickCollector = (name: string) => {
+    setAddingNew(false);
+    setCollector(name);
+    const last = s.collectorDeliveries
+      .filter((d) => d.collector === name)
+      .sort((a, b) => b.at.localeCompare(a.at))[0];
+    if (last) {
+      setTareStr(String(last.tareKg));
+      const dMatch = dedOptions.find((o) => o.value === last.deductionPct);
+      if (dMatch) setDedId(dMatch.id);
+      const pMatch = priceOptions.find((o) => o.value === last.pricePerKg);
+      if (pMatch) setPriceId(pMatch.id);
+    }
   };
 
-  const weighIn = () => {
-    if (!ready || !who || !gross) return;
-    const rec = s.recordIntake({ collector: who, grossKg: gross, tareKg, deductionPct: dedPct, pricePerKg: price, day: today, hasScalePhoto: true });
-    setVoucher(rec); useStore.getState().toast({ kind: 'ok', title: `Voucher ${voucherNo(rec, useStore.getState().collectorDeliveries)} issued`, detail: `${who} · ${fmtKg(rec.netKg)} net · ${fmtUGX(amountOf(rec))}` });
-    setGross(null); setPhoto(false); setCustom(''); setCustomOn(false); setTarget(rnd(600, 2400)); setRound((r) => r + 1); if (adding) { setCollector(who); setAdding(false); setNewName(''); }
-    focusFirst();
+  const handleSaveAndIssue = () => {
+    if (!who || !grossKg || grossKg <= tareKg || pricePerKg <= 0) return;
+    const rec = s.recordIntake({
+      collector: who,
+      grossKg,
+      tareKg,
+      deductionPct,
+      pricePerKg,
+      day: today,
+      hasScalePhoto: scalePhoto,
+    });
+    const vNo = voucherNo(rec, useStore.getState().collectorDeliveries);
+    setIssuedVoucher(rec);
+    showSaved(`Weigh-in voucher ${vNo} saved`, {
+      detail: `${who} · Net ${fmtKg(rec.netKg)} · What we pay: ${fmtUGX(amountOf(rec))}`,
+    });
+    if (addingNew) {
+      setCollector(who);
+      setAddingNew(false);
+      setNewCollectorName('');
+    }
+    setGrossKg(null);
+    setScaleRound((r) => r + 1);
+    setTargetKg(950 + Math.floor(Math.random() * 800));
+    setStep(1);
   };
-  const pay = (d: CollectorDelivery) => { s.payCollector(d.id); useStore.getState().toast({ kind: 'ok', title: `${fmtUGX(amountOf(d))} paid to ${d.collector}`, detail: 'Posted to today’s cash book as materials' }); };
-  const send = async (d: CollectorDelivery) => { await messaging.sendWhatsApp(d.collector, `Voucher ${no(d)}`); setSentId(d.id); useStore.getState().toast({ kind: 'ok', title: 'Voucher shared on WhatsApp', detail: d.collector }); };
-  const voucherLines = (d: CollectorDelivery) => [`${site.legalName} · Voucher ${no(d)}`, `${d.collector} · ${fmtDayLong(d.day)} ${fmtTime(d.at)}`, `Gross ${fmtKg(d.grossKg)} − tare ${fmtKg(d.tareKg)} − ${d.deductionPct}% = net ${fmtKg(d.netKg)}`, `${fmtKg(d.netKg)} × ${fmtUGX(d.pricePerKg)} = ${fmtUGX(amountOf(d))}`, d.paid ? 'Paid in cash.' : 'Payable at the plant office.'];
-  useHotkey('c', () => setPhoto((p) => !p), { label: 'Capture the scale photo' });
 
-  const cols: Column<CollectorDelivery>[] = [
-    { key: 't', header: 'Time', mono: true, sort: (d) => d.at, cell: (d) => fmtTime(d.at) },
-    { key: 'v', header: 'Voucher', cell: (d) => <span className="code font-medium">{no(d)}</span> },
-    { key: 'c', header: 'Collector', truncate: 240, sort: (d) => d.collector, cell: (d) => <span className="inline-flex items-center gap-1.5"><Avatar name={d.collector} size={20} />{d.collector}</span> },
-    { key: 'g', header: 'Gross kg', align: 'right', mono: true, sort: (d) => d.grossKg, cell: (d) => fmtNum(d.grossKg) },
-    { key: 'ta', header: 'Tare', align: 'right', mono: true, cell: (d) => fmtNum(d.tareKg) },
-    { key: 'd', header: 'Deduction', align: 'right', mono: true, sort: (d) => d.deductionPct, cell: (d) => `${d.deductionPct}%` },
-    { key: 'n', header: 'Net kg', align: 'right', mono: true, sort: (d) => d.netKg, cell: (d) => <span className="font-medium">{fmtNum(d.netKg)}</span> },
-    { key: 'pr', header: 'UGX / kg', align: 'right', mono: true, cell: (d) => fmtNum(d.pricePerKg) },
-    { key: 'a', header: 'Amount UGX', align: 'right', mono: true, sort: (d) => amountOf(d), cell: (d) => <span className="font-medium">{fmtNum(amountOf(d))}</span> },
-    { key: 'p', header: 'Status', sort: (d) => (d.paid ? 1 : 0), cell: (d) => <Badge tone={d.paid ? 'ok' : 'warn'} dot>{d.paid ? 'Paid' : 'Unpaid'}</Badge> },
-  ];
+  const handlePayCashNow = (d: CollectorDelivery) => {
+    s.payCollector(d.id);
+    const updated =
+      useStore.getState().collectorDeliveries.find((x) => x.id === d.id) ?? d;
+    setIssuedVoucher(updated);
+    showSaved(`${fmtUGX(amountOf(d))} paid in cash to ${d.collector}`, {
+      detail: 'Recorded in today’s cash book under Materials.',
+    });
+  };
+
+  const activeVoucher = issuedVoucher
+    ? (s.collectorDeliveries.find((d) => d.id === issuedVoucher.id) ??
+      issuedVoucher)
+    : null;
+
+  const activeVoucherNo = activeVoucher
+    ? voucherNo(activeVoucher, s.collectorDeliveries)
+    : '';
+
+  const waLines = activeVoucher
+    ? [
+        `${site.legalName} · Weigh-in Voucher ${activeVoucherNo}`,
+        `Collector: ${activeVoucher.collector}`,
+        `Gross ${fmtKg(activeVoucher.grossKg)} − Tare ${fmtKg(activeVoucher.tareKg)} − Deduction ${activeVoucher.deductionPct}% = Net ${fmtKg(activeVoucher.netKg)}`,
+        `What we pay: ${fmtKg(activeVoucher.netKg)} × ${fmtUGX(activeVoucher.pricePerKg)} = ${fmtUGX(amountOf(activeVoucher))}`,
+        activeVoucher.paid ? 'Status: Paid in cash ✓' : 'Status: Payable at cashier office',
+      ]
+    : [];
+
+  const handleSendWhatsApp = async () => {
+    if (!activeVoucher) return;
+    await messaging.sendWhatsApp(
+      activeVoucher.collector,
+      waLines.join('\n'),
+      `${activeVoucherNo}.pdf`,
+    );
+    setWaSent(true);
+    showSaved(`Voucher ${activeVoucherNo} sent on WhatsApp`);
+  };
 
   return (
-    <div className="flex flex-col gap-[var(--gap)]">
-      <div className="-mb-[var(--gap)]">
-        <PageHeader eyebrow={`${site.name} · Intake`} title="Collector intake" meta={<Badge tone="neutral" dot>{todays.length} deliver{todays.length === 1 ? 'y' : 'ies'} today</Badge>}
-          subtitle="Gross on the scale, tare and deduction by rule, net and amount by arithmetic. One voucher per delivery."
-          actions={<Button variant="ghost" icon={ClipboardList} className="max-sm:hidden" onClick={() => go.site('production/collectors')}>Collector ledger</Button>} />
-      </div>
-      {site.toBeConfirmed && <Note tone="warn">{site.toBeConfirmed}</Note>}
+    <div className="flex flex-col gap-5 max-w-[860px] mx-auto">
+      <SavedBanner info={saved} onDismiss={clearSaved} />
 
-      <Workbench asideWidth={420} aside={<>
-        <Panel className={WIDE} icon={Receipt} title={current ? 'Voucher' : 'Voucher preview'} sub={current ? 'issued' : 'updates as you weigh'}
-          actions={<><Badge tone={current ? (current.paid ? 'ok' : 'warn') : 'neutral'} dot={!!current}>{current ? (current.paid ? 'Paid' : 'Unpaid') : 'Draft'}</Badge>{current && <IconButton icon={X} label="Back to the draft" onClick={() => setVoucher(null)} />}</>}
-          footer={<div className="grid grid-cols-2 gap-2"><Button variant="primary" icon={Banknote} disabled={!current || current.paid} onClick={() => current && pay(current)} hotkey="y" hotkeyLabel="Pay the voucher in cash">{current?.paid ? 'Paid' : 'Pay now (cash)'}</Button><Button icon={MessageCircle} disabled={!current} onClick={() => setShare(true)} hotkey="s" hotkeyLabel="Share the voucher on WhatsApp">Share on WhatsApp</Button></div>}>
-          {current
-            ? <VoucherDoc issuer={site.legalName} no={no(current)} collector={current.collector} when={`${fmtDayShort(current.day)} · ${fmtTime(current.at)}`} gross={current.grossKg} tare={current.tareKg} dedPct={current.deductionPct} net={current.netKg} price={current.pricePerKg} amount={amountOf(current)} status={current.paid ? 'paid' : 'unpaid'} photo={current.hasScalePhoto} />
-            : <VoucherDoc issuer={site.legalName} no={draftNo} collector={who ?? ''} when={fmtDayShort(today)} gross={gross ?? 0} tare={tareKg} dedPct={dedPct} net={live.netKg} price={price} amount={live.amount} status="draft" photo={photo} />}
-        </Panel>
-        <div className={`grid grid-cols-2 gap-[var(--gap)] ${WIDE}`}>
-          <Stat label="Net kg today" icon={Scale} accent="var(--series-5)" value={<CountUp value={Math.round(todayNet)} />} spark={netByDay.slice(0, -1)} sparkColor="var(--series-5)" sub={`${todays.length} deliver${todays.length === 1 ? 'y' : 'ies'}`} />
-          <Stat label="Payable today" icon={Wallet} accent="var(--series-2)" value={<CountUp value={todayAmount} format={compact} />} sub={`UGX · ${todays.filter((d) => !d.paid).length} unpaid`} />
-        </div>
-        <Panel className={WIDE} icon={Banknote} title="Unpaid vouchers" sub={unpaid.length ? `${unpaid.length} · ${fmtUGX(unpaidTotal)}` : undefined} pad={unpaid.length === 0} actions={<Button size="sm" variant="ghost" onClick={() => go.site('production/collectors')}>Ledger</Button>}>
-          {unpaid.length === 0 ? <Empty icon={CheckCircle2} title="Every collector has been paid" /> : unpaid.slice(0, 6).map((d) => (
-            <div key={d.id} className={cn('flex items-center gap-2.5 px-[var(--pad)] py-1.5 row-h border-b border-[var(--line)] last:border-b-0', current?.id === d.id && 'bg-[var(--selected)]')}>
-              <Avatar name={d.collector} size={24} />
-              <button type="button" onClick={() => setVoucher(d)} className="min-w-0 flex-1 text-left"><span className="block t-base font-medium truncate">{d.collector}</span><span className="block t-sm text-[var(--text-3)] truncate"><span className="code">{no(d)}</span> · {fmtKg(d.netKg)} net</span></button>
-              <span className="num t-base font-medium whitespace-nowrap">{fmtNum(amountOf(d))}</span>
-              <Button size="sm" variant="secondary" onClick={() => pay(d)}>Pay</Button>
-            </div>
-          ))}
-        </Panel>
-        <Panel className={WIDE} icon={BarChart3} title="Net kg received" sub="per day · last 10 working days">
-          <ColumnChart height={150} data={days.map((d, i) => ({ label: fmtDayShort(d), values: [netByDay[i]], partial: d === today }))} />
-        </Panel>
-      </>}>
-        <Panel icon={Scale} title="Weigh in" sub={`gate scale · ${fmtDayShort(today)}`} pad={false}
-          footer={<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2"><span className="min-w-0 truncate">{missing.length ? `Still needed: ${missing.join(', ')}.` : <span className="text-[var(--text)]">{who} · <span className="num">{fmtKg(live.netKg)}</span> net · <span className="num font-medium">{fmtUGX(live.amount)}</span></span>}</span><Button variant="primary" icon={Receipt} disabled={!ready} onClick={weighIn} hotkey="mod+enter" hotkeyLabel="Weigh in and issue the voucher">Weigh in and issue voucher</Button></div>}>
-          <div ref={formRef}>
-            <FormSection n={1} done={!!who} title="Collector" hint={history.length ? `${history.length} deliveries on record · average deduction ${(history.reduce((t, d) => t + d.deductionPct, 0) / history.length).toFixed(1)}%` : adding ? 'first delivery' : undefined}>
-              <div className="grid gap-2 sm:grid-cols-2 max-w-[680px]">
-                <Combobox options={options} value={adding ? NEW : collector} onChange={pickCollector} placeholder="Search collectors" clearable />
-                {adding && <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Collector or firm name" aria-label="New collector name" autoFocus />}
-              </div>
-            </FormSection>
-            <FormSection n={2} done={gross !== null} title="Gross weight" hint="everything on the platform">
-              <ScaleBay innerRef={scaleRef} note={gross !== null ? <span className="inline-flex items-center gap-1 text-[var(--text-2)]"><CheckCircle2 className="size-3.5 text-[var(--ok)]" />Gross {fmtKg(gross)} taken from the scale</span> : 'Lorry or sacks on the platform, then read the scale.'}>
-                <ScaleWidget key={round} title={scaleTitle} targetKg={target} onReading={(kg) => { setGross(kg); setVoucher(null); }} />
-              </ScaleBay>
-            </FormSection>
-            <FormSection n={3} done={gross !== null && gross > tareKg} title="Tare, deduction and price">
-              <FormRow label="Tare" hint="Empty lorry, sacks or pallet. Starts from this collector's last tare when there is one."><div className="max-w-[260px]"><NumberPad value={tare} onChange={setTare} allowDecimal suffix="kg" /></div></FormRow>
-              <FormRow label="Deduction">
-                {dedOptions.length === 0 && <SettingsEmpty className="mb-2" what="deduction options" />}
-                <ChipGroup ariaLabel="Deduction" options={[...dedOptions.map((d) => ({ value: d.id, label: d.label })), { value: CUSTOM, label: 'Custom' }]} value={customOn ? CUSTOM : dedId} onChange={(v) => { if (v === CUSTOM) setCustomOn(true); else { setDedId(v); setCustomOn(false); setCustom(''); } }} />
-                {customOn && <div className="max-w-[260px] mt-2"><NumberPad value={custom} onChange={setCustom} allowDecimal suffix="%" max={100} autoFocus /></div>}
-                <Note tone="warn" className="mt-2"><strong>Deduction rule to be confirmed with the plant:</strong> who decides the percentage, and on what evidence (moisture, contamination, sample sort). Until then every deduction is recorded with the person who applied it.</Note>
-              </FormRow>
-              <FormRow label="Price per kg" hint={priceOptions.some((o) => o.example) ? 'Example prices; the plant sets its own in Settings → Master data.' : undefined}>
-                {priceOptions.length === 0 ? <SettingsEmpty what="price options" /> : <ChipGroup ariaLabel="Price per kg" options={priceOptions.map((o) => ({ value: o.id, label: o.value !== undefined ? fmtUGX(o.value) : o.label }))} value={priceId} onChange={setPriceId} />}
-              </FormRow>
-            </FormSection>
-            <FormSection n={4} done={photo} title="Scale photo" hint="mandatory">
-              <button type="button" onClick={() => setPhoto(!photo)} aria-pressed={photo} className={cn('w-full max-w-[680px] flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors', photo ? 'border-[color-mix(in_srgb,var(--ok)_45%,transparent)] bg-[var(--ok-bg)]' : 'border-dashed border-[var(--line-2)] hover:bg-[var(--hover)]')}>
-                <span className="size-9 rounded-md grid place-items-center shrink-0" style={{ background: photo ? 'color-mix(in srgb, var(--ok) 16%, transparent)' : 'var(--surface-3)', color: photo ? 'var(--ok)' : 'var(--text-2)' }}>{photo ? <CheckCircle2 className="size-5" /> : <Camera className="size-5" />}</span>
-                <span className="min-w-0 flex-1"><span className="block t-base font-medium">{photo ? 'Scale photo captured' : 'Photograph the scale display'}</span><span className="block t-sm text-[var(--text-3)]">{photo ? 'Attached to the voucher. Select again to retake.' : 'The voucher cannot be issued without it.'}</span></span>
-                <Kbd keys="c" />
-              </button>
-            </FormSection>
-            <FormSection n={5} done={ready} title="Voucher arithmetic" hint="nothing here is typed">
-              <div className="grid gap-2">
-                <Calc terms={[{ label: 'Gross', value: fmtNum(gross ?? 0), unit: 'kg' }, { op: '−', label: 'Tare', value: fmtNum(tareKg), unit: 'kg' }, { op: '−', label: `Deduction ${dedPct}%`, value: fmtNum(dedKg), unit: 'kg' }, { op: '=', label: 'Net weight', value: kg1(live.netKg), unit: 'kg', result: true }]} />
-                <Calc terms={[{ label: 'Net weight', value: kg1(live.netKg), unit: 'kg' }, { op: '×', label: 'Price per kg', value: fmtUGX(price) }, { op: '=', label: 'Amount payable', value: fmtUGX(live.amount), result: true }]} />
-              </div>
-            </FormSection>
+      {/* Top header */}
+      <div className="paper-sheet p-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="t-sm font-semibold text-[var(--text-2)]">
+            {site.name} · Scrap Weigh-In
           </div>
-        </Panel>
-      </Workbench>
+          <h1 className="t-title text-[var(--text)] mt-0.5">
+            {en.recycling.intakeTitle}
+          </h1>
+          <p className="t-base text-[var(--text-2)] mt-0.5">
+            {en.recycling.intakeSubtitle}
+          </p>
+        </div>
+        <span className="px-3.5 py-1.5 rounded-[8px] bg-[var(--surface-2)] border border-[var(--line-2)] t-sm font-bold num">
+          {todaysDeliveries.length} weighed today
+        </span>
+      </div>
 
-      <Panel icon={Scale} title="Today's intake" sub={`${fmtDayLong(today)} · select a row to open its voucher`} pad={false}>
-        <DataGrid bare dense rows={todays} rowKey={(d) => d.id} columns={cols} onRowClick={(d) => setVoucher(d)} selectedKey={current?.id} empty="No deliveries yet today. The first weigh-in appears here with its voucher."
-          footer={todays.length ? <tr><td colSpan={3}>{todays.length} deliver{todays.length === 1 ? 'y' : 'ies'}</td><td className="text-right num">{fmtNum(todays.reduce((t, d) => t + d.grossKg, 0))}</td><td className="text-right num">{fmtNum(todays.reduce((t, d) => t + d.tareKg, 0))}</td><td /><td className="text-right num">{fmtNum(Math.round(todayNet * 10) / 10)}</td><td /><td className="text-right num">{fmtNum(todayAmount)}</td><td /></tr> : undefined} />
-      </Panel>
+      {/* Unconfirmed rule notice (Section 7) */}
+      <StatusNotice tone="warn" title="Deduction rules to be confirmed">
+        {en.recycling.deductionUnconfirmed}
+      </StatusNotice>
 
-      <Sheet open={share && !!current} onClose={() => setShare(false)} title="Share voucher on WhatsApp" sub={current ? `${no(current)} · ${current.collector}` : undefined}
-        footer={current && <Button variant="primary" icon={MessageCircle} disabled={sentId === current.id} onClick={() => send(current)} hotkey="mod+enter" hotkeyLabel="Send the voucher">{sentId === current.id ? 'Sent' : 'Send'}</Button>}>
-        {current && <div className="flex justify-center py-2"><WhatsAppPreview to={current.collector} lines={voucherLines(current)} attachment={`${no(current)}.pdf`} sent={sentId === current.id} /></div>}
+      {/* Just-issued voucher card with 1-tap Pay Cash or Share on WhatsApp */}
+      {activeVoucher && (
+        <PaperSheet
+          title={`Weigh-in Voucher Issued · ${activeVoucherNo}`}
+          subtitle={`${activeVoucher.collector} · ${fmtDayShort(activeVoucher.day)}`}
+          badge={
+            <span
+              className={cn(
+                'px-3 py-1 rounded-[6px] t-xs font-bold',
+                activeVoucher.paid
+                  ? 'bg-[var(--ok-bg)] text-[var(--ok)]'
+                  : 'bg-[var(--warn-bg)] text-[var(--warn)]',
+              )}
+            >
+              {activeVoucher.paid ? 'Paid in cash ✓' : 'Unpaid · Ready to pay'}
+            </span>
+          }
+        >
+          <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] items-center">
+            <div className="rounded-[8px] border border-[var(--line-2)] bg-[var(--surface-2)] p-4 flex flex-col gap-2">
+              <div className="flex justify-between t-base">
+                <span className="text-[var(--text-2)]">Gross weight on scale</span>
+                <span className="num font-semibold">{fmtKg(activeVoucher.grossKg)}</span>
+              </div>
+              <div className="flex justify-between t-base">
+                <span className="text-[var(--text-2)]">Minus tare</span>
+                <span className="num">− {fmtKg(activeVoucher.tareKg)}</span>
+              </div>
+              <div className="flex justify-between t-base">
+                <span className="text-[var(--text-2)]">
+                  Minus deduction ({activeVoucher.deductionPct}%)
+                </span>
+                <span className="num">
+                  −{' '}
+                  {fmtKg(
+                    Math.max(
+                      0,
+                      Math.round(
+                        (activeVoucher.grossKg -
+                          activeVoucher.tareKg -
+                          activeVoucher.netKg) *
+                          10,
+                      ) / 10,
+                    ),
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between t-base font-bold pt-2 border-t border-[var(--line)]">
+                <span>Net weight paid for</span>
+                <span className="num">{fmtKg(activeVoucher.netKg)}</span>
+              </div>
+              <div className="flex justify-between t-lg font-bold pt-2 border-t border-[var(--line-2)] text-[var(--ok)]">
+                <span>{en.recycling.whatWePay}</span>
+                <span className="num">{fmtUGX(amountOf(activeVoucher))}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-3">
+              <div className="p-2 rounded-[8px] bg-white border border-[var(--line)]">
+                <QR value={activeVoucherNo} size={64} />
+              </div>
+              <button
+                type="button"
+                disabled={activeVoucher.paid}
+                onClick={() => handlePayCashNow(activeVoucher)}
+                className="w-full ctl px-5 rounded-[8px] bg-[var(--ok)] hover:opacity-95 disabled:opacity-50 text-white font-bold t-base inline-flex items-center justify-center gap-2"
+              >
+                <Banknote className="size-5" />
+                <span>
+                  {activeVoucher.paid ? 'Paid in cash ✓' : en.recycling.payNowCash}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setWaSent(false);
+                  setWaOpen(true);
+                }}
+                className="w-full ctl-sm px-4 rounded-[8px] border border-[var(--line-2)] bg-[var(--surface)] hover:bg-[var(--hover)] font-bold t-sm inline-flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="size-4" />
+                <span>Send on WhatsApp</span>
+              </button>
+            </div>
+          </div>
+        </PaperSheet>
+      )}
+
+      {/* ====================================================================
+       * STEP 1 OF 3: WHO DELIVERED?
+       * ==================================================================== */}
+      {step === 1 && (
+        <StepWizard
+          step={1}
+          totalSteps={3}
+          title={en.recycling.whoDelivered}
+          subtitle="Tap a collector from the list below, or add a new collector."
+          canNext={who.length >= 2}
+          nextHint="Pick who brought the scrap first."
+          onNext={() => setStep(2)}
+        >
+          <div className="flex flex-col gap-4">
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {collectors.map((c) => {
+                const count = s.collectorDeliveries.filter(
+                  (d) => d.collector === c,
+                ).length;
+                return (
+                  <ChoiceButton
+                    key={c}
+                    selected={!addingNew && collector === c}
+                    avatarName={c}
+                    title={c}
+                    subtitle={`${count} past deliver${count === 1 ? 'y' : 'ies'}`}
+                    onClick={() => handlePickCollector(c)}
+                  />
+                );
+              })}
+
+              <ChoiceButton
+                selected={addingNew}
+                icon={<UserPlus className="size-5" />}
+                title="Add a new collector"
+                subtitle="First time delivering here"
+                onClick={() => {
+                  setAddingNew(true);
+                  setCollector(null);
+                }}
+              />
+            </div>
+
+            {addingNew && (
+              <div className="pt-3 border-t border-[var(--line)]">
+                <label className="block t-base font-bold text-[var(--text)] mb-1.5">
+                  New collector's full name
+                </label>
+                <Input
+                  value={newCollectorName}
+                  onChange={(e) => setNewCollectorName(e.target.value)}
+                  placeholder="e.g. Kasule Scrap Traders"
+                  className="!h-[52px] !text-[18px]"
+                  autoFocus
+                />
+              </div>
+            )}
+          </div>
+        </StepWizard>
+      )}
+
+      {/* ====================================================================
+       * STEP 2 OF 3: WEIGHT ON THE SCALE
+       * ==================================================================== */}
+      {step === 2 && (
+        <StepWizard
+          step={2}
+          totalSteps={3}
+          title={en.recycling.weightOnScale}
+          subtitle="Put the sacks or lorry on the platform, read the scale, and use the reading."
+          summaryStrip={
+            <span>
+              Collector: <b>{who}</b>
+            </span>
+          }
+          canNext={grossKg !== null && grossKg > 0 && scalePhoto}
+          nextHint="Tap 'Read scale' then 'Use … kg' on the scale below."
+          onBack={() => setStep(1)}
+          onNext={() => setStep(3)}
+        >
+          <div className="flex flex-col gap-4">
+            <ScaleWidget
+              key={scaleRound}
+              title="Scrap Intake Platform Scale"
+              targetKg={targetKg}
+              onReading={(kg) => setGrossKg(kg)}
+            />
+
+            {grossKg !== null && (
+              <div className="rounded-[8px] bg-[var(--ok-bg)] border border-[var(--ok)] px-4 py-3 flex items-center justify-between">
+                <span className="t-base font-bold text-[var(--ok)] flex items-center gap-2">
+                  <CheckCircle2 className="size-5" />
+                  Scale weight recorded: {fmtKg(grossKg)}
+                </span>
+                <span className="t-sm text-[var(--text-2)]">Ready for Step 3</span>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setScalePhoto((p) => !p)}
+              className={cn(
+                'w-full rounded-[10px] border-2 p-4 flex items-center gap-3.5 text-left transition-colors',
+                scalePhoto
+                  ? 'border-[var(--ok)] bg-[var(--ok-bg)]/50'
+                  : 'border-dashed border-[var(--line-2)] bg-[var(--surface)]',
+              )}
+            >
+              <span
+                className={cn(
+                  'size-11 rounded-[8px] grid place-items-center shrink-0',
+                  scalePhoto
+                    ? 'bg-[var(--ok)] text-white'
+                    : 'bg-[var(--surface-2)] text-[var(--text-2)]',
+                )}
+              >
+                {scalePhoto ? <Check className="size-5 stroke-[3]" /> : <Camera className="size-5" />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="t-base font-bold text-[var(--text)]">
+                  {scalePhoto
+                    ? 'Photo of scale display attached ✓'
+                    : 'Tap to take photo of scale display'}
+                </div>
+                <div className="t-sm text-[var(--text-2)]">
+                  Saved with the voucher so there is no argument about the scale reading.
+                </div>
+              </div>
+            </button>
+          </div>
+        </StepWizard>
+      )}
+
+      {/* ====================================================================
+       * STEP 3 OF 3: DEDUCTIONS & WHAT WE PAY
+       * ==================================================================== */}
+      {step === 3 && (
+        <StepWizard
+          step={3}
+          totalSteps={3}
+          title={`${en.recycling.deductions} & ${en.recycling.whatWePay}`}
+          subtitle="Pick the deduction for moisture/dirt and price per kg. The screen works out what we pay."
+          summaryStrip={
+            <span>
+              Collector: <b>{who}</b> · Scale weight:{' '}
+              <b className="num">{fmtKg(grossKg ?? 0)}</b>
+            </span>
+          }
+          canNext={Boolean(grossKg && grossKg > tareKg && pricePerKg > 0)}
+          nextHint="Check that gross weight is greater than tare weight."
+          nextLabel={en.recycling.saveAndIssueVoucher}
+          isFinalStep
+          finalTone="ok"
+          onBack={() => setStep(2)}
+          onNext={handleSaveAndIssue}
+        >
+          <div className="flex flex-col gap-5">
+            {/* Deduction picker from master data */}
+            <div>
+              <div className="t-base font-bold text-[var(--text)] mb-1">
+                1. {en.recycling.deductions} (moisture, sand or labels)
+              </div>
+              <div className="t-xs text-[var(--warn)] font-semibold mb-2">
+                Note: {en.recycling.deductionUnconfirmed}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-4">
+                {dedOptions.map((d) => (
+                  <ChoiceButton
+                    key={d.id}
+                    selected={dedId === d.id}
+                    title={d.label}
+                    subtitle={
+                      d.value !== undefined
+                        ? `−${Math.round(cleanKg * (d.value / 100))} kg`
+                        : undefined
+                    }
+                    onClick={() => setDedId(d.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Price per kg from master data */}
+            <div>
+              <div className="t-base font-bold text-[var(--text)] mb-2">
+                2. Price per kg (from Settings)
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {priceOptions.map((p) => (
+                  <ChoiceButton
+                    key={p.id}
+                    selected={priceId === p.id}
+                    title={p.value !== undefined ? `${fmtUGX(p.value)} / kg` : p.label}
+                    subtitle={p.label}
+                    onClick={() => setPriceId(p.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Tare weight */}
+            <div className="grid gap-5 lg:grid-cols-2 items-start pt-2 border-t border-[var(--line)]">
+              <LargeKeypad
+                value={tareStr}
+                onChange={setTareStr}
+                unit="kg"
+                label="3. Empty sacks / lorry tare weight (kg)"
+                presets={[
+                  { label: '0 kg', value: 0 },
+                  { label: '10 kg', value: 10 },
+                  { label: '20 kg', value: 20 },
+                  { label: '50 kg', value: 50 },
+                ]}
+              />
+
+              {/* Paper Voucher Arithmetic Box: What we pay */}
+              <div className="rounded-[10px] border-2 border-[var(--ok)] bg-[var(--ok-bg)]/45 p-5 flex flex-col gap-2.5">
+                <div className="t-sm font-bold uppercase tracking-wider text-[var(--ok)]">
+                  Weigh-In Voucher Calculation
+                </div>
+
+                <div className="flex justify-between t-base py-1 border-b border-[var(--line)]">
+                  <span className="text-[var(--text-2)]">Weight on the scale</span>
+                  <span className="num font-bold">{fmtKg(grossKg ?? 0)}</span>
+                </div>
+                <div className="flex justify-between t-base py-1 border-b border-[var(--line)]">
+                  <span className="text-[var(--text-2)]">Minus empty sacks / tare</span>
+                  <span className="num">− {fmtKg(tareKg)}</span>
+                </div>
+                <div className="flex justify-between t-base py-1 border-b border-[var(--line)]">
+                  <span className="text-[var(--text-2)]">
+                    Minus deduction ({deductionPct}%)
+                  </span>
+                  <span className="num">− {fmtKg(deductedKg)}</span>
+                </div>
+                <div className="flex justify-between t-lg font-bold py-1.5 border-b border-[var(--line-2)]">
+                  <span>{en.recycling.netWeight}</span>
+                  <span className="num">{fmtKg(liveCalc.netKg)}</span>
+                </div>
+                <div className="flex justify-between t-base py-1">
+                  <span className="text-[var(--text-2)]">Price per kg</span>
+                  <span className="num">× {fmtUGX(pricePerKg)}</span>
+                </div>
+
+                <div className="mt-1 pt-3 border-t-2 border-[var(--ok)] flex items-baseline justify-between gap-3">
+                  <span className="t-lg font-bold text-[var(--text)]">
+                    {en.recycling.whatWePay}
+                  </span>
+                  <span className="text-[28px] font-bold num text-[var(--ok)]">
+                    {fmtUGX(liveCalc.amount)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </StepWizard>
+      )}
+
+      {/* Today's scrap weigh-in log (paper mirror) */}
+      <PaperSheet
+        title="Scrap weighed in today"
+        subtitle="Tap any line to view its voucher or pay the collector in cash."
+        pad={false}
+      >
+        {todaysDeliveries.length === 0 ? (
+          <div className="p-5 t-base text-[var(--text-2)]">
+            No scrap deliveries weighed in today yet.
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--line)]">
+            {todaysDeliveries.map((d) => {
+              const vNo = voucherNo(d, s.collectorDeliveries);
+              const amt = amountOf(d);
+              return (
+                <div
+                  key={d.id}
+                  className="px-5 py-3.5 flex flex-wrap items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar name={d.collector} size={36} />
+                    <div>
+                      <div className="t-base font-bold text-[var(--text)]">
+                        {d.collector} · <span className="code t-sm">{vNo}</span>
+                      </div>
+                      <div className="t-sm text-[var(--text-2)] num">
+                        Gross {fmtKg(d.grossKg)} − {d.deductionPct}% ={' '}
+                        <b>{fmtKg(d.netKg)} net</b> · {fmtTime(d.at)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="num t-lg font-bold">{fmtUGX(amt)}</span>
+                    {d.paid ? (
+                      <span className="px-3 py-1.5 rounded-[8px] bg-[var(--ok-bg)] text-[var(--ok)] t-sm font-bold inline-flex items-center gap-1">
+                        <Check className="size-4 stroke-[3]" /> Paid
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handlePayCashNow(d)}
+                        className="ctl-sm px-3.5 rounded-[8px] bg-[var(--brand)] text-white font-bold t-sm inline-flex items-center gap-1.5"
+                      >
+                        <Banknote className="size-4" /> Pay cash
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </PaperSheet>
+
+      <Sheet
+        open={waOpen && Boolean(activeVoucher)}
+        onClose={() => setWaOpen(false)}
+        title="Send Weigh-In Voucher on WhatsApp"
+        sub={
+          activeVoucher
+            ? `${activeVoucherNo} · ${activeVoucher.collector}`
+            : undefined
+        }
+      >
+        {activeVoucher && (
+          <div className="flex flex-col gap-4 items-center">
+            <WhatsAppPreview
+              to={activeVoucher.collector}
+              lines={waLines}
+              attachment={`${activeVoucherNo}.pdf`}
+              sent={waSent}
+            />
+            <button
+              type="button"
+              disabled={waSent}
+              onClick={handleSendWhatsApp}
+              className="w-full ctl-lg rounded-[8px] bg-[var(--ok)] text-white font-bold t-lg inline-flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="size-5" />
+              <span>{waSent ? 'Sent ✓' : 'Send on WhatsApp'}</span>
+            </button>
+          </div>
+        )}
       </Sheet>
     </div>
   );
