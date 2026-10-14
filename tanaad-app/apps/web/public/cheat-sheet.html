@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tanaad v3 — Presentation Phone Guide</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-border: #334155;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --brand: #0ea5e9;
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --bad: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 16px;
+    padding-bottom: 60px;
+    font-size: 16px;
+  }
+  .header {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .header p { font-size: 14px; opacity: 0.9; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-blue { background: #0284c7; color: white; }
+  .badge-green { background: #15803d; color: white; }
+  .badge-amber { background: #b45309; color: white; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .url {
+    font-family: monospace;
+    font-size: 13px;
+    background: #0f172a;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: #38bdf8;
+    margin-bottom: 10px;
+    display: inline-block;
+  }
+  .say-box {
+    background: #091220;
+    border-left: 4px solid var(--accent);
+    padding: 12px;
+    border-radius: 0 8px 8px 0;
+    margin: 10px 0;
+    font-size: 15px;
+    font-style: italic;
+    color: #e2e8f0;
+  }
+  .action-list {
+    margin: 8px 0;
+    padding-left: 20px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .action-list li { margin-bottom: 4px; }
+  .action-list strong { color: var(--text); }
+
+  .slide-box {
+    border: 1px dashed #475569;
+    background: #111e33;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+  .slide-title { font-weight: bold; color: #facc15; margin-bottom: 4px; }
+
+  .nav-btn {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: 8px 0;
+    z-index: 100;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-bottom: 12px;
+  }
+  .nav-btn a {
+    background: #334155;
+    color: #f8fafc;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .nav-btn a:hover, .nav-btn a:active { background: var(--brand); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="badge badge-amber">Demo Cheat Sheet</span>
+  <h1>Tanaad v3 Presentation Guide</h1>
+  <p>Keep this on your phone screen during your presentation.</p>
+</div>
+
+<!-- Quick Navigation Pill Bar -->
+<div class="nav-btn">
+  <a href="#pitch">30s Pitch</a>
+  <a href="#slides">PPTX Slides</a>
+  <a href="#login">1. Login</a>
+  <a href="#today">2. Today</a>
+  <a href="#prod">3. Production</a>
+  <a href="#att">4. Attendance</a>
+  <a href="#cash">5. Cash</a>
+  <a href="#gate">6. Dispatch</a>
+  <a href="#ceo">7. CEO Cockpit</a>
+  <a href="#qa">Q&amp;A</a>
+</div>
+
+<!-- 30-Second Pitch -->
+<div class="card" id="pitch">
+  <h2>The 30-Second Opening Pitch</h2>
+  <div class="say-box">
+    "Tanaad runs three industrial manufacturing operations in Kampala: plastic woven mats, carrier bags (Tanaad Packages Ltd), and an HDPE recycling plant. Today, they operate largely on paper books, handwritten roll stickers, and WhatsApp.<br><br>
+    In version 3, we eliminated all unnecessary enterprise clutter and built a <strong>calm, 5-destination system</strong>. It is designed so that any supervisor or cashier on a noisy factory floor can complete their daily task in <strong>under one minute with zero training</strong>."
+  </div>
+  <p style="font-size:13px; color:var(--text-muted);"><strong>Demo PIN:</strong> <code>1234</code> · <strong>Key User:</strong> Moses Tumusiime (Site Manager)</p>
+</div>
+
+<!-- PPTX Slides Framing -->
+<div class="card" id="slides">
+  <h2>4-Slide Intro (Before Opening App)</h2>
+  <p style="font-size:14px; margin-bottom:8px;">Spend only 3 minutes on slides before opening the live system:</p>
+  
+  <div class="slide-box">
+    <div class="slide-title">Slide 1: Business Context &amp; Objective</div>
+    • 3 manufacturing plants in Kampala under Tanaad Group.<br>
+    • Goal: Replace paper books and WhatsApp with structured digital accountability.<br>
+    • Principle: Under 1 minute to complete any daily action.
+  </div>
+
+  <div class="slide-box">
+    <div class="slide-title">Slide 2: Floor-to-Phone Architecture</div>
+    • <strong>Floor:</strong> Rugged shared tablet (PIN login, works offline).<br>
+    • <strong>Sync:</strong> Instant auto-sync whenever network is available.<br>
+    • <strong>Executive:</strong> Live CEO mobile cockpit with 5 key numbers per factory.
+  </div>
+
+  <div class="slide-box">
+    <div class="slide-title">Slide 3: Core Functional Modules</div>
+    1. Guided Shift Checklist (Today's Actions)<br>
+    2. Machine Floor &amp; Material Balance (Production Report)<br>
+    3. Workforce &amp; Casual Payroll (Attendance Report)<br>
+    4. Drawer Cash Reconciliation (Cash Report)<br>
+    5. Barcode Scanning &amp; Weighbridge Gate Audit (Dispatch Report)
+  </div>
+
+  <div class="slide-box">
+    <div class="slide-title">Slide 4: Implementation Roadmap</div>
+    • <strong>Phase 1 (Weeks 1–3):</strong> Tablet setup, Attendance &amp; Loom logging.<br>
+    • <strong>Phase 2 (Weeks 4–6):</strong> Cash book, Expense vouchers &amp; Weighbridge.<br>
+    • <strong>Phase 3 (Weeks 7–8):</strong> CEO Cockpit, automated WhatsApp alerts &amp; handover.
+  </div>
+</div>
+
+<!-- Screen 1: Login -->
+<div class="card" id="login">
+  <span class="badge badge-blue">Screen 1</span>
+  <h2>Login &amp; Shared Tablet PIN</h2>
+  <div class="url">URL: /</div>
+  <ol class="action-list">
+    <li>Click <strong>"Shared tablet PIN"</strong> tab.</li>
+    <li>Show the photo cards (no typing needed).</li>
+    <li>Select <strong>Moses Tumusiime</strong>, punch PIN <strong><code>1234</code></strong>.</li>
+  </ol>
+  <div class="say-box">
+    "Notice that we don't ask a factory supervisor to type email addresses or passwords with dirty hands on a touch screen. On a shared floor tablet, they tap their face and punch their 4-digit PIN. In under 5 seconds they are in, and every record they touch is digitally stamped with their name."
+  </div>
+</div>
+
+<!-- Screen 2: Today -->
+<div class="card" id="today">
+  <span class="badge badge-blue">Screen 2</span>
+  <h2>Today's Actions (Shift Book)</h2>
+  <div class="url">URL: /s/mats/today</div>
+  <ol class="action-list">
+    <li>Point to <strong>Shift Status Banner</strong>: Day shift (07:00–19:00).</li>
+    <li>Show <strong>4 KPI Cards</strong>: 36 on shift, 1 unlogged machine, UGX 26.17M cash expected, 7 alerts.</li>
+    <li>Show <strong>Your Guided Shift Workflow</strong>: Step 1, Step 2, Step 3... with action buttons.</li>
+  </ol>
+  <div class="say-box">
+    "When a supervisor starts their shift, they see this screen. There are no confusing menus—just a clear 5-step checklist. As they log attendance and machine output, the steps turn green with checkmarks. The supervisor always knows exactly what remains to be done before their shift ends."
+  </div>
+</div>
+
+<!-- Screen 3: Production -->
+<div class="card" id="prod">
+  <span class="badge badge-blue">Screen 3</span>
+  <h2>Production &amp; Machine Report</h2>
+  <div class="url">URL: /s/mats/reports/production</div>
+  <ol class="action-list">
+    <li>Show <strong>KPI cards</strong>: 302 units (892 kg), 52% target attainment, 7.9% scrap rate, 354 min downtime.</li>
+    <li>Scroll down table:
+      • Loom 1, 2, 3: Green "Running smoothly"<br>
+      • Loom 4: Amber "Below benchmark · 211 min downtime"<br>
+      • Loom 9: "Waiting for output"
+    </li>
+    <li>Show <strong>Material Balance</strong> at bottom: 1,435 kg resin in vs 892 kg goods out vs 113 kg waste.</li>
+  </ol>
+  <div class="say-box">
+    "This replaces the paper shift book. Management sees all 15 looms on one screen. We see which operator ran each loom, how many mats were woven, and if a loom is below target, the supervisor logs the exact reason—like thread breaks or mechanical failure. The system also tracks raw resin in versus finished goods out, highlighting unaccounted material loss."
+  </div>
+</div>
+
+<!-- Screen 4: Attendance -->
+<div class="card" id="att">
+  <span class="badge badge-blue">Screen 4</span>
+  <h2>Attendance &amp; Casual Payroll</h2>
+  <div class="url">URL: /s/mats/reports/attendance</div>
+  <ol class="action-list">
+    <li>Point to top cards: <strong>31 Present</strong>, <strong>2 Absent</strong>, <strong>23 Casuals</strong>, and <strong>Casual Payroll Due: UGX 288,000</strong>.</li>
+    <li>Show department pills: Finishing 16, Weaving 7, Office 5, Loading 5, Extrusion 1.</li>
+    <li>Scroll table: Show casuals getting calculated daily pay automatically (UGX 15k full day / UGX 7.5k half day).</li>
+  </ol>
+  <div class="say-box">
+    "In Kampala manufacturing, casual labor management is a major source of cash leakage. Here, the supervisor marks attendance in 30 seconds. For casual workers, daily wages are calculated automatically. When the cashier settles payments at 17:00, they know the exact cash required down to the shilling, with zero disputes."
+  </div>
+</div>
+
+<!-- Screen 5: Cash -->
+<div class="card" id="cash">
+  <span class="badge badge-blue">Screen 5</span>
+  <h2>Cash &amp; Expenses Summary</h2>
+  <div class="url">URL: /s/mats/reports/cash</div>
+  <ol class="action-list">
+    <li>Point to 4 Numbers: Opening (UGX 22.99M) + In (4.70M) - Out (1.52M) = Expected Closing (UGX 26.17M).</li>
+    <li>Show <strong>Where Money Went Today</strong> cards: Materials 38%, Spares 23%, Food 18%, Utilities 16%, Transport 5%.</li>
+    <li>Scroll chronological ledger showing sales receipts and expense vouchers.</li>
+  </ol>
+  <div class="say-box">
+    "Every factory cashier has a drawer and safe. Here, every cash sale is added immediately, and every floor expense—like buying generator diesel or lunch for loaders—requires a category. At closing time, the cashier counts physical banknotes, and the system reconciles counted cash against expected cash. Nothing disappears."
+  </div>
+</div>
+
+<!-- Screen 6: Dispatch -->
+<div class="card" id="gate">
+  <span class="badge badge-blue">Screen 6</span>
+  <h2>Dispatch &amp; Gate Weighbridge</h2>
+  <div class="url">URL: /s/mats/reports/dispatch</div>
+  <ol class="action-list">
+    <li>Point to numbers: <strong>18 Lorries Dispatched</strong>, <strong>721 Bundles</strong>, <strong>58,782 kg</strong>.</li>
+    <li>Show table: Destinations (Owino Market, Kigali Rwanda, Juba South Sudan), vehicle plates, driver names, and green "Cleared &amp; Passed" badges.</li>
+    <li>Highlight the <strong>Weight Variance</strong> column (-0.5%, +0.3%).</li>
+  </ol>
+  <div class="say-box">
+    "This is one of the most important security screens. Tanaad previously experienced a case where 200 mats went missing on a lorry to Rwanda because counting was done manually. In our system, loaders scan every bundle barcode. When the lorry drives onto the gate weighbridge, the scale checks the actual weight against expected weight. If bundles are missing and weight is short by more than 2%, the gate status turns red, holding the lorry."
+  </div>
+</div>
+
+<!-- Screen 7: CEO Cockpit -->
+<div class="card" id="ceo">
+  <span class="badge badge-blue">Screen 7</span>
+  <h2>CEO 3-Site Group Overview</h2>
+  <div class="url">URL: /g/cockpit</div>
+  <ol class="action-list">
+    <li>Switch user to <strong>Hassan Warsame</strong> (or navigate to /g/cockpit).</li>
+    <li>Show the 3 factory columns side-by-side: Mats Factory, Bags Factory, Recycling Plant.</li>
+    <li>Point to the 5 vital metrics on each card: Cash expected, On-shift headcount, Output today, Waste %, and Dispatches.</li>
+    <li>Show <strong>Decisions &amp; Approvals</strong> button (8 items waiting).</li>
+  </ol>
+  <div class="say-box">
+    "Finally, here is the CEO view. Hassan and his partner can open this on their phone anywhere in the world. They see all three operations side-by-side with 5 key numbers each. If a customer in Juba wants an order that exceeds their credit limit, or a plant manager needs a large expense authorized, the CEO reviews and approves it right here with one tap."
+  </div>
+</div>
+
+<!-- Q&A Cheat Sheet -->
+<div class="card" id="qa">
+  <h2>Tough Questions &amp; Answers</h2>
+  
+  <p><strong>Q: What if the factory loses power or internet?</strong></p>
+  <p style="color:var(--text-muted); margin-bottom:12px;">A: It is an offline PWA. Supervisors continue logging attendance, machines, and cash on the tablet locally. When Wi-Fi returns, it syncs automatically to the cloud.</p>
+
+  <p><strong>Q: Can supervisors fake numbers or delete records?</strong></p>
+  <p style="color:var(--text-muted); margin-bottom:12px;">A: No. It uses an append-only ledger. Nothing is ever deleted. Any correction is appended as a new entry with an explanation and user timestamp.</p>
+
+  <p><strong>Q: Can we roll this out one factory at a time?</strong></p>
+  <p style="color:var(--text-muted);">A: Yes. We recommend starting with Mats Factory (Attendance + Looms), then Cash and Weighbridge, followed by Bags and Recycling.</p>
+</div>
+
+</body>
+</html>
