@@ -1,0 +1,100 @@
+=====================================================
+TANAAD ERP v3 — ONE-PAGE DEMO SCRIPT (SCROLL ONLY)
+=====================================================
+
+[00:00 - 02:00] STEP 1: OPENING & FACTORY REALITY
+ACTION: Show Slide 1 & Slide 2 in PowerPoint.
+SAY:
+"Good day everyone. Thank you for making time today.
+Before jumping into the software, let me speak about the reality on the factory floor here in Kampala.
+We are running three demanding manufacturing facilities: Woven Plastic Mats, Tanaad Packages, and the HDPE Recycling line.
+Most enterprise software fails here because it is built for accountants in air-conditioned offices. It has 50 menus, nested drop-downs, and requires weeks of training.
+Our floor supervisors and cashiers are using shared tablets on a busy, dusty floor. If software takes more than 10 seconds to record an entry, they go back to exercise books.
+That is why we built Tanaad Version 3. We stripped away everything complicated. It has only 5 single-tap destinations, with zero nested menus, built specifically for instant reporting and zero material theft."
+
+-----------------------------------------------------
+[02:00 - 03:30] STEP 2: 3 SITES & THE 5 CORE HUBS
+ACTION: Show Slide 3 & Slide 4 in PowerPoint.
+SAY:
+"Here is how the group is structured:
+• Site 1 (Mats): 15 extrusion looms running shifts round the clock.
+• Site 2 (Packages): Polypropylene bag manufacturing and bulk export dispatches.
+• Site 3 (Recycling): Taking scrap plastic, washing it, and pelletizing raw resin to feed back into our looms.
+
+To run this without friction, we gave the staff only 5 core screens:
+1. Today's Actions (the shift checklist)
+2. Production & Scrap Report
+3. Attendance & Daily Wages
+4. Cash & Expense Ledger
+5. Dispatch & Gate Clearance
+
+Let me now switch directly to the live system and show you how fast and simple this is."
+
+-----------------------------------------------------
+>>> SWITCH TO CHROME / BROWSER <<<
+-----------------------------------------------------
+
+[03:30 - 05:30] STEP 3: TODAY'S ACTIONS (SHIFT HUB)
+ACTION: Click "Today" or open /today
+POINT AT: Green "Ready to submit shift" badge & 4 direct buttons.
+SAY:
+"When a supervisor picks up the tablet at 6 AM, this is the only screen they see.
+No complex tree menus. Just a clear, honest checklist of their 4 shift duties:
+Have looms been recorded? Has morning headcount been taken? Is fuel or petty cash logged? Is dispatch ready?
+Notice this badge: 'Ready to submit shift'. The supervisor knows immediately whether their handoff is complete before leaving the factory."
+
+-----------------------------------------------------
+[05:30 - 08:00] STEP 4: PRODUCTION & SCRAP REPORT
+ACTION: Click "Production Report" or open /reports/production
+POINT AT: Scrap Rate: 1.8% | Loom 12 downtime: 35 min | Resin balance card.
+SAY:
+"Here is the live pulse of the factory floor.
+Across the top, management gets the numbers that matter today: Total Linear Meters produced, Average Output, and our Scrap Rate at 1.8%.
+Below that is our 15-Loom floor grid. In one glance, you see which loom is running, which operator is at the machine, and if there is downtime.
+Look at Loom 12: marked with 'Power Fluctuation - 35 mins'. Management doesn't have to wait for an end-of-month post-mortem; we see downtime live.
+And on the right is our Material Balance: Resin In vs Finished Goods Out vs Scrap. This stops raw material from leaking out the back door."
+
+-----------------------------------------------------
+[08:00 - 10:30] STEP 5: ATTENDANCE & DAILY WAGES
+ACTION: Click "Attendance & Wages" or open /reports/attendance
+POINT AT: 31 Present / 2 Absent | Daily Casual Payroll: UGX 288,000.
+SAY:
+"Next is labor. In manufacturing, casual worker payroll is where money leaks every single week.
+Right here, we have 31 Present and 2 Absent today.
+Supervisors tap who is present. The system instantly groups them by department—Extrusion, Weaving, Finishing, Loading.
+Look at the bottom card: Estimated Daily Casual Payroll: UGX 288,000.
+The cashier no longer sits with a calculator making manual tally sheets where phantom workers can be added. It is logged, locked, and transparent."
+
+-----------------------------------------------------
+[10:30 - 12:30] STEP 6: CASH & PETTY EXPENSES
+ACTION: Click "Cash & Expenses" or open /reports/cash
+POINT AT: Current Cash in Hand: UGX 22.99M | Categorized Expenses.
+SAY:
+"Now let us look at the cash drawer.
+Every factory has cash flow for machine spare parts, generator fuel, casual lunch allowances, and local collections.
+Here you see our Current Drawer Balance: UGX 22.99 Million.
+Every shilling is categorized: Materials, Spares, Utilities, Food.
+When money goes out, the supervisor logs who took it and for what reason. No receipts are lost, and the drawer must balance at the end of every shift."
+
+-----------------------------------------------------
+[12:30 - 15:00] STEP 7: DISPATCH & WEIGHBRIDGE CONTROL
+ACTION: Click "Dispatch & Gate" or open /reports/dispatch
+POINT AT: Destinations (Kigali, Juba) | Variance (-0.2%) | Green CLEARANCE badge.
+SAY:
+"This is our final operational barrier: the factory exit gate.
+This table lists every lorry leaving the compound for Kampala, Gulu, Kigali, or Juba.
+Notice the critical security feature here: Gate Scale vs Expected Weight.
+We weigh the truck at the gate. If a lorry carrying 500 bundles shows a weight variance higher than 1%, the system flags it in red and puts the vehicle on HOLD.
+No driver can leave the compound with undeclared finished goods. Only cleared trucks receive the green CLEARANCE stamp."
+
+-----------------------------------------------------
+[15:00 - 17:00] STEP 8: CEO 3-SITE COCKPIT & CLOSING
+ACTION: Open /cockpit (or top right profile -> Cockpit)
+POINT AT: Consolidated Revenue: UGX 260.6M | 3 Sites: All Normal.
+SAY:
+"To wrap up, where does all this data go?
+It feeds directly into the CEO Cockpit.
+Whether the leadership is in Kampala, visiting the plants, or traveling overseas, they open their smartphone and see today's consolidated revenue: UGX 260.6 Million across all three sites.
+In summary: Tanaad v3 gives the factory workers a system so simple they cannot make mistakes, while giving leadership 100% financial and operational control.
+Thank you, and I welcome any questions or specific workflows you would like to test."
+=====================================================
