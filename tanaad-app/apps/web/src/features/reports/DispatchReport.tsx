@@ -132,8 +132,8 @@ export function DispatchReport() {
       sticky: true,
       cell: (r) => (
         <div>
-          <span className="font-mono font-bold text-[13px] text-slate-900">{r.d.deliveryNoteNo}</span>
-          <span className="text-[11px] text-slate-400 font-mono block">
+          <span className="font-mono font-bold text-[13px] text-[var(--text)]">{r.d.deliveryNoteNo}</span>
+          <span className="text-[11px] text-[var(--text-4)] font-mono block">
             {r.d.createdAt.slice(0, 10)} · {r.d.createdAt.slice(11, 16)}
           </span>
         </div>
@@ -144,8 +144,8 @@ export function DispatchReport() {
       header: 'Consignee / Client',
       cell: (r) => (
         <div>
-          <div className="font-semibold text-xs sm:text-sm text-slate-900 leading-tight">{r.clientName}</div>
-          <div className="text-[11px] text-slate-500 font-medium mt-0.5">{r.destination}</div>
+          <div className="font-semibold text-xs sm:text-sm text-[var(--text)] leading-tight">{r.clientName}</div>
+          <div className="text-[11px] text-[var(--text-3)] font-medium mt-0.5">{r.destination}</div>
         </div>
       ),
     },
@@ -154,10 +154,10 @@ export function DispatchReport() {
       header: 'Vehicle & Driver',
       cell: (r) => (
         <div>
-          <span className="font-mono font-bold text-xs bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-200">
+          <span className="font-mono font-bold text-xs bg-[var(--surface-2)] text-[var(--text)] px-2 py-0.5 rounded border border-[var(--line)]">
             {r.d.vehicle || 'UBD 412X'}
           </span>
-          <span className="text-[11px] text-slate-500 block mt-0.5">{r.d.driver || 'Moses Kigozi'}</span>
+          <span className="text-[11px] text-[var(--text-3)] block mt-0.5">{r.d.driver || 'Moses Kigozi'}</span>
         </div>
       ),
     },
@@ -168,10 +168,10 @@ export function DispatchReport() {
       mono: true,
       cell: (r) => (
         <div>
-          <span className="font-mono font-bold text-slate-900 text-xs sm:text-sm">
+          <span className="font-mono font-bold text-[var(--text)] text-xs sm:text-sm">
             {fmtNum(r.bundlesCount)}
           </span>
-          <span className="text-[11px] text-slate-400 block font-mono">of {fmtNum(r.totalBundlesOrdered)} bdl</span>
+          <span className="text-[11px] text-[var(--text-4)] block font-mono">of {fmtNum(r.totalBundlesOrdered)} bdl</span>
         </div>
       ),
     },
@@ -180,7 +180,7 @@ export function DispatchReport() {
       header: 'Expected Mass',
       align: 'right',
       mono: true,
-      cell: (r) => <span className="font-mono text-slate-600 text-xs">{fmtKg(r.expectedKg)}</span>,
+      cell: (r) => <span className="font-mono text-[var(--text-2)] text-xs">{fmtKg(r.expectedKg)}</span>,
     },
     {
       key: 'gateKg',
@@ -188,8 +188,8 @@ export function DispatchReport() {
       align: 'right',
       mono: true,
       cell: (r) => (
-        <span className="font-mono font-bold text-slate-900 text-xs sm:text-sm">
-          {r.gateKg ? fmtKg(r.gateKg) : <span className="text-slate-400 font-normal">Unweighed</span>}
+        <span className="font-mono font-bold text-[var(--text)] text-xs sm:text-sm">
+          {r.gateKg ? fmtKg(r.gateKg) : <span className="text-[var(--text-4)] font-normal">Unweighed</span>}
         </span>
       ),
     },
@@ -199,7 +199,7 @@ export function DispatchReport() {
       align: 'right',
       mono: true,
       cell: (r) => {
-        if (r.variancePct === null) return <span className="text-slate-400">—</span>;
+        if (r.variancePct === null) return <span className="text-[var(--text-4)]">—</span>;
         const isSafe = Math.abs(r.variancePct) <= 1.0;
         return (
           <span
@@ -253,7 +253,7 @@ export function DispatchReport() {
             e.stopPropagation();
             setSelectedDispatch(r);
           }}
-          className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+          className="text-xs font-semibold px-2.5 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-2)] border border-[var(--line)]"
         >
           Gate Pass
         </button>
@@ -264,38 +264,38 @@ export function DispatchReport() {
   return (
     <div className="flex flex-col gap-6">
       {/* Official Factory Gate Security Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-5 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-semibold tracking-wider text-slate-500 uppercase">
+            <div className="flex items-center gap-2 text-xs font-mono font-semibold tracking-wider text-[var(--text-3)] uppercase">
               <span className="size-2 rounded-full bg-emerald-500" />
               TANAAD LOGISTICS & GATE SECURITY · {site.legalName}
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)] mt-1">
               Weighbridge Scale & Gate Security Clearance
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-3)] mt-0.5">
               Anti-theft scale integration, barcode bundle verification, and cross-border export clearance.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="inline-flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 text-xs font-medium">
+            <div className="inline-flex rounded-lg border border-[var(--line-2)] bg-[var(--surface-2)] p-0.5 text-xs font-medium">
               <button
                 onClick={() => setRange('today')}
-                className={cn('px-2.5 py-1 rounded-md transition-colors', range === 'today' ? 'bg-white font-semibold text-slate-900 shadow-2xs' : 'text-slate-600')}
+                className={cn('px-2.5 py-1 rounded-md transition-colors', range === 'today' ? 'bg-[var(--surface)] font-semibold text-[var(--text)] shadow-2xs' : 'text-[var(--text-2)]')}
               >
                 Today
               </button>
               <button
                 onClick={() => setRange('last7')}
-                className={cn('px-2.5 py-1 rounded-md transition-colors', range === 'last7' ? 'bg-white font-semibold text-slate-900 shadow-2xs' : 'text-slate-600')}
+                className={cn('px-2.5 py-1 rounded-md transition-colors', range === 'last7' ? 'bg-[var(--surface)] font-semibold text-[var(--text)] shadow-2xs' : 'text-[var(--text-2)]')}
               >
                 Last 7 Days
               </button>
               <button
                 onClick={() => setRange('all')}
-                className={cn('px-2.5 py-1 rounded-md transition-colors', range === 'all' ? 'bg-white font-semibold text-slate-900 shadow-2xs' : 'text-slate-600')}
+                className={cn('px-2.5 py-1 rounded-md transition-colors', range === 'all' ? 'bg-[var(--surface)] font-semibold text-[var(--text)] shadow-2xs' : 'text-[var(--text-2)]')}
               >
                 All Dispatches
               </button>
@@ -314,14 +314,14 @@ export function DispatchReport() {
           label="Total Lorries Dispatched"
           icon={Truck}
           tone="ok"
-          value={<>{totalLoads} <span className="text-xs font-normal text-slate-500 font-sans">loads</span></>}
+          value={<>{totalLoads} <span className="text-xs font-normal text-[var(--text-3)] font-sans">loads</span></>}
           sub="Kampala, Gulu, Kigali & Juba shipments"
         />
         <Stat
           label="Bundles / Sacks Cleared"
           icon={Package}
           tone="neutral"
-          value={<>{fmtNum(totalBundles)} <span className="text-xs font-normal text-slate-500 font-sans">bundles</span></>}
+          value={<>{fmtNum(totalBundles)} <span className="text-xs font-normal text-[var(--text-3)] font-sans">bundles</span></>}
           sub="100% physically scanned at loading bay"
         />
         <Stat
@@ -335,25 +335,25 @@ export function DispatchReport() {
           label="Gate Security Clearance"
           icon={ShieldCheck}
           tone={holdsCount > 0 ? 'bad' : 'ok'}
-          value={<>{clearedCount} <span className="text-xs font-normal text-slate-500 font-sans">cleared</span></>}
+          value={<>{clearedCount} <span className="text-xs font-normal text-[var(--text-3)] font-sans">cleared</span></>}
           sub={holdsCount > 0 ? `${holdsCount} lorry on security hold (>1% mismatch)` : 'Zero active security holds'}
         />
       </KpiStrip>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
         <div className="flex flex-1 items-center gap-2 max-w-md">
           <div className="relative flex-1">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-4)]" />
             <input
               type="text"
               placeholder="Search delivery note, client, vehicle plate (e.g. UBD...), or driver..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-500"
+              className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[var(--line-2)] bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-4)] outline-none focus:border-slate-500"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-4)] hover:text-[var(--text-2)]">
                 <X className="size-3.5" />
               </button>
             )}
@@ -362,12 +362,12 @@ export function DispatchReport() {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Filter */}
-          <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
+          <div className="inline-flex rounded-lg border border-[var(--line)] bg-[var(--surface-2)] p-0.5 text-xs">
             <button
               onClick={() => setStatusFilter('all')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                statusFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                statusFilter === 'all' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               All Status ({allDispatches.length})
@@ -376,7 +376,7 @@ export function DispatchReport() {
               onClick={() => setStatusFilter('pass')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                statusFilter === 'pass' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                statusFilter === 'pass' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               Cleared ({clearedCount})
@@ -385,7 +385,7 @@ export function DispatchReport() {
               onClick={() => setStatusFilter('hold')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                statusFilter === 'hold' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                statusFilter === 'hold' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               Held ({holdsCount})
@@ -396,7 +396,7 @@ export function DispatchReport() {
           <select
             value={destinationFilter}
             onChange={(e) => setDestinationFilter(e.target.value)}
-            className="text-xs font-medium rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-700 outline-none"
+            className="text-xs font-medium rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-[var(--text-2)] outline-none"
           >
             <option value="all">All Destinations ({destinationsList.length})</option>
             {destinationsList.map((dest) => (
@@ -407,7 +407,7 @@ export function DispatchReport() {
       </div>
 
       {/* Main Weighbridge Dispatches Table */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl overflow-hidden shadow-2xs">
         <DataGrid
           rows={dispatches}
           columns={columns}
@@ -420,54 +420,54 @@ export function DispatchReport() {
       {/* Official Factory Gate Pass & Weighbridge Certificate Modal */}
       {selectedDispatch && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full p-6 text-slate-900">
+          <div className="bg-[var(--surface)] rounded-xl shadow-2xl max-w-xl w-full p-6 text-[var(--text)]">
             <div className="border-b pb-3 mb-4 flex items-start justify-between">
               <div>
-                <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">TANAAD INDUSTRIAL GROUP</div>
-                <h2 className="text-base font-bold text-slate-900">FACTORY GATE PASS & WEIGHBRIDGE CERTIFICATE</h2>
-                <div className="text-xs text-slate-600 font-mono mt-0.5">
+                <div className="text-[10px] font-bold tracking-widest text-[var(--text-3)] uppercase">TANAAD INDUSTRIAL GROUP</div>
+                <h2 className="text-base font-bold text-[var(--text)]">FACTORY GATE PASS & WEIGHBRIDGE CERTIFICATE</h2>
+                <div className="text-xs text-[var(--text-2)] font-mono mt-0.5">
                   Delivery Note: {selectedDispatch.d.deliveryNoteNo} · Date: {selectedDispatch.d.createdAt.slice(0, 10)}
                 </div>
               </div>
-              <button onClick={() => setSelectedDispatch(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSelectedDispatch(null)} className="text-[var(--text-4)] hover:text-[var(--text-2)]">
                 <X className="size-5" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-2 gap-3 bg-[var(--surface-2)] p-3 rounded-lg border border-[var(--line)]">
                 <div>
-                  <span className="text-slate-500 block">Vehicle Registration:</span>
-                  <span className="font-mono font-bold text-sm text-slate-900">{selectedDispatch.d.vehicle || 'UBD 412X'}</span>
+                  <span className="text-[var(--text-3)] block">Vehicle Registration:</span>
+                  <span className="font-mono font-bold text-sm text-[var(--text)]">{selectedDispatch.d.vehicle || 'UBD 412X'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Driver Name:</span>
-                  <span className="font-semibold text-sm text-slate-900">{selectedDispatch.d.driver || 'Moses Kigozi'}</span>
+                  <span className="text-[var(--text-3)] block">Driver Name:</span>
+                  <span className="font-semibold text-sm text-[var(--text)]">{selectedDispatch.d.driver || 'Moses Kigozi'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Consignee:</span>
-                  <span className="font-semibold text-slate-800">{selectedDispatch.clientName}</span>
+                  <span className="text-[var(--text-3)] block">Consignee:</span>
+                  <span className="font-semibold text-[var(--text)]">{selectedDispatch.clientName}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Destination:</span>
-                  <span className="font-semibold text-slate-800">{selectedDispatch.destination}</span>
+                  <span className="text-[var(--text-3)] block">Destination:</span>
+                  <span className="font-semibold text-[var(--text)]">{selectedDispatch.destination}</span>
                 </div>
               </div>
 
               {/* Weight Breakdown */}
-              <div className="border border-slate-200 rounded-lg p-3 space-y-2">
-                <div className="text-xs font-bold text-slate-700 uppercase">Weighbridge Scale Readings</div>
-                <div className="flex justify-between py-1 border-b border-slate-100">
-                  <span className="text-slate-500">Calculated Expected Net:</span>
+              <div className="border border-[var(--line)] rounded-lg p-3 space-y-2">
+                <div className="text-xs font-bold text-[var(--text-2)] uppercase">Weighbridge Scale Readings</div>
+                <div className="flex justify-between py-1 border-b border-[var(--line)]">
+                  <span className="text-[var(--text-3)]">Calculated Expected Net:</span>
                   <span className="font-mono font-semibold">{fmtKg(selectedDispatch.expectedKg)}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-100">
-                  <span className="text-slate-500">Gate Scale Measured Net:</span>
-                  <span className="font-mono font-bold text-slate-900">
+                <div className="flex justify-between py-1 border-b border-[var(--line)]">
+                  <span className="text-[var(--text-3)]">Gate Scale Measured Net:</span>
+                  <span className="font-mono font-bold text-[var(--text)]">
                     {selectedDispatch.gateKg ? fmtKg(selectedDispatch.gateKg) : 'Not weighed on scale'}
                   </span>
                 </div>
-                <div className="flex justify-between py-1.5 bg-slate-50 px-2 rounded">
+                <div className="flex justify-between py-1.5 bg-[var(--surface-2)] px-2 rounded">
                   <span className="font-semibold">Variance %:</span>
                   <span
                     className={cn(
@@ -503,16 +503,16 @@ export function DispatchReport() {
               </div>
 
               {/* Signatures */}
-              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-200">
+              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[var(--line)]">
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Weighbridge Operator</div>
-                  <div className="h-8 border-b border-slate-300 mt-1" />
-                  <div className="text-[10px] text-slate-600 mt-0.5">Signature & Stamp</div>
+                  <div className="text-[10px] text-[var(--text-3)] uppercase font-semibold">Weighbridge Operator</div>
+                  <div className="h-8 border-b border-[var(--line-2)] mt-1" />
+                  <div className="text-[10px] text-[var(--text-2)] mt-0.5">Signature & Stamp</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Gate Security Guard</div>
-                  <div className="h-8 border-b border-slate-300 mt-1" />
-                  <div className="text-[10px] text-slate-600 mt-0.5">Physical Count Verified</div>
+                  <div className="text-[10px] text-[var(--text-3)] uppercase font-semibold">Gate Security Guard</div>
+                  <div className="h-8 border-b border-[var(--line-2)] mt-1" />
+                  <div className="text-[10px] text-[var(--text-2)] mt-0.5">Physical Count Verified</div>
                 </div>
               </div>
             </div>
@@ -539,31 +539,31 @@ export function DispatchReport() {
       {/* Manager Override PIN Dialog */}
       {overrideModalOpen && (
         <div className="fixed inset-0 z-60 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-5 text-slate-900">
-            <h3 className="text-base font-bold text-slate-900">Manager Security Override</h3>
-            <p className="text-xs text-slate-500 mt-1">
+          <div className="bg-[var(--surface)] rounded-xl shadow-2xl max-w-sm w-full p-5 text-[var(--text)]">
+            <h3 className="text-base font-bold text-[var(--text)]">Manager Security Override</h3>
+            <p className="text-xs text-[var(--text-3)] mt-1">
               Authorizes vehicle release despite weight variance. Action is permanently logged on the CEO Audit Feed.
             </p>
 
             <div className="space-y-3 mt-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Enter Manager PIN (Demo: 1234)</label>
+                <label className="block font-semibold text-[var(--text-2)] mb-1">Enter Manager PIN (Demo: 1234)</label>
                 <input
                   type="password"
                   maxLength={4}
                   placeholder="PIN"
                   value={managerPin}
                   onChange={(e) => setManagerPin(e.target.value)}
-                  className="w-full text-center text-lg font-mono font-bold tracking-widest px-3 py-1.5 rounded-lg border border-slate-300 outline-none focus:border-slate-500"
+                  className="w-full text-center text-lg font-mono font-bold tracking-widest px-3 py-1.5 rounded-lg border border-[var(--line-2)] outline-none focus:border-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Reason for Override</label>
+                <label className="block font-semibold text-[var(--text-2)] mb-1">Reason for Override</label>
                 <select
                   value={overrideReason}
                   onChange={(e) => setOverrideReason(e.target.value)}
-                  className="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs"
+                  className="w-full px-2 py-1.5 rounded-lg border border-[var(--line-2)] text-xs"
                 >
                   <option value="Wet heavy canvas tarpaulin after rain">Wet heavy canvas tarpaulin after rain</option>
                   <option value="Customer authorized additional sample bundles">Customer authorized additional sample bundles</option>

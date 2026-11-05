@@ -147,9 +147,9 @@ export function AttendanceReport() {
         <div className="flex items-center gap-2.5">
           <Avatar name={r.person.fullName} seed={r.person.avatarSeed} size={30} />
           <div>
-            <div className="font-semibold text-[13px] text-slate-900 leading-tight">{r.person.fullName}</div>
-            <div className="text-[11px] text-slate-500 font-mono flex items-center gap-1 mt-0.5">
-              <Phone className="size-3 text-slate-400" />
+            <div className="font-semibold text-[13px] text-[var(--text)] leading-tight">{r.person.fullName}</div>
+            <div className="text-[11px] text-[var(--text-3)] font-mono flex items-center gap-1 mt-0.5">
+              <Phone className="size-3 text-[var(--text-4)]" />
               {r.person.phoneMomo || 'No registered mobile'}
             </div>
           </div>
@@ -161,7 +161,7 @@ export function AttendanceReport() {
       header: 'Department / Line',
       sort: (r) => r.sector,
       cell: (r) => (
-        <span className="text-xs font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+        <span className="text-xs font-medium text-[var(--text-2)] bg-[var(--surface-2)] px-2.5 py-1 rounded-md border border-[var(--line)]">
           {r.sector}
         </span>
       ),
@@ -198,7 +198,7 @@ export function AttendanceReport() {
                 'text-[11px] font-semibold px-2 py-0.5 rounded border transition-colors',
                 r.status === 'present'
                   ? 'bg-emerald-600 text-white border-emerald-600'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  : 'bg-[var(--surface)] text-[var(--text-2)] border-[var(--line)] hover:bg-[var(--surface-2)]'
               )}
             >
               Present
@@ -213,7 +213,7 @@ export function AttendanceReport() {
                 'text-[11px] font-semibold px-2 py-0.5 rounded border transition-colors',
                 r.status === 'half'
                   ? 'bg-amber-600 text-white border-amber-600'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  : 'bg-[var(--surface)] text-[var(--text-2)] border-[var(--line)] hover:bg-[var(--surface-2)]'
               )}
             >
               Half
@@ -228,7 +228,7 @@ export function AttendanceReport() {
                 'text-[11px] font-semibold px-2 py-0.5 rounded border transition-colors',
                 r.status === 'absent'
                   ? 'bg-rose-600 text-white border-rose-600'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  : 'bg-[var(--surface)] text-[var(--text-2)] border-[var(--line)] hover:bg-[var(--surface-2)]'
               )}
             >
               Absent
@@ -243,7 +243,7 @@ export function AttendanceReport() {
       align: 'right',
       mono: true,
       cell: (r) => (
-        <span className="font-mono text-slate-600 text-xs">
+        <span className="font-mono text-[var(--text-2)] text-xs">
           {fmtUGX(r.dailyWage)}
         </span>
       ),
@@ -259,7 +259,7 @@ export function AttendanceReport() {
           <span
             className={cn(
               'font-mono font-bold text-[13px]',
-              r.wageDue > 0 ? 'text-slate-900' : 'text-slate-400'
+              r.wageDue > 0 ? 'text-[var(--text)]' : 'text-[var(--text-4)]'
             )}
           >
             {fmtUGX(r.wageDue)}
@@ -275,17 +275,17 @@ export function AttendanceReport() {
   return (
     <div className="flex flex-col gap-6">
       {/* Official Factory Labor Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-5 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-semibold tracking-wider text-slate-500 uppercase">
+            <div className="flex items-center gap-2 text-xs font-mono font-semibold tracking-wider text-[var(--text-3)] uppercase">
               <span className="size-2 rounded-full bg-blue-500" />
               TANAAD WORKFORCE AUDIT · {site.legalName}
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)] mt-1">
               Factory Attendance & Daily Wage Settlement
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-3)] mt-0.5">
               Automated labor muster roll, anti-ghost worker verification, and casual shift payroll.
             </p>
           </div>
@@ -294,7 +294,7 @@ export function AttendanceReport() {
             <select
               value={day}
               onChange={(e) => setDay(e.target.value)}
-              className="text-xs sm:text-sm font-medium rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-800 shadow-2xs outline-none focus:border-slate-500"
+              className="text-xs sm:text-sm font-medium rounded-lg border border-[var(--line-2)] bg-[var(--surface)] px-3 py-1.5 text-[var(--text)] shadow-2xs outline-none focus:border-slate-500"
             >
               {days.map((d) => (
                 <option key={d} value={d}>
@@ -303,12 +303,12 @@ export function AttendanceReport() {
               ))}
             </select>
 
-            <div className="inline-flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 text-xs font-medium">
+            <div className="inline-flex rounded-lg border border-[var(--line-2)] bg-[var(--surface-2)] p-0.5 text-xs font-medium">
               <button
                 onClick={() => setShiftKind('day')}
                 className={cn(
                   'px-3 py-1 rounded-md transition-colors',
-                  shiftKind === 'day' ? 'bg-white font-semibold text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  shiftKind === 'day' ? 'bg-[var(--surface)] font-semibold text-[var(--text)] shadow-2xs' : 'text-[var(--text-2)] hover:text-[var(--text)]'
                 )}
               >
                 Day Shift (07:00–19:00)
@@ -317,7 +317,7 @@ export function AttendanceReport() {
                 onClick={() => setShiftKind('night')}
                 className={cn(
                   'px-3 py-1 rounded-md transition-colors',
-                  shiftKind === 'night' ? 'bg-white font-semibold text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  shiftKind === 'night' ? 'bg-[var(--surface)] font-semibold text-[var(--text)] shadow-2xs' : 'text-[var(--text-2)] hover:text-[var(--text)]'
                 )}
               >
                 Night Shift (19:00–07:00)
@@ -340,21 +340,21 @@ export function AttendanceReport() {
           label="Total On Duty Today"
           icon={UserCheck}
           tone="ok"
-          value={<>{presentCount + halfCount} <span className="text-xs font-normal text-slate-500 font-sans">workers</span></>}
+          value={<>{presentCount + halfCount} <span className="text-xs font-normal text-[var(--text-3)] font-sans">workers</span></>}
           sub={<>{presentCount} full shift · {halfCount} half shift</>}
         />
         <Stat
           label="Recorded Absences"
           icon={UserX}
           tone={absentCount > 4 ? 'bad' : absentCount > 0 ? 'warn' : 'neutral'}
-          value={<>{absentCount} <span className="text-xs font-normal text-slate-500 font-sans">absent</span></>}
+          value={<>{absentCount} <span className="text-xs font-normal text-[var(--text-3)] font-sans">absent</span></>}
           sub={<>{unmarkedCount} awaiting morning roll-call</>}
         />
         <Stat
           label="Active Casual Workers"
           icon={Users}
           tone="neutral"
-          value={<>{casualPresent} <span className="text-xs font-normal text-slate-500 font-sans">casuals</span></>}
+          value={<>{casualPresent} <span className="text-xs font-normal text-[var(--text-3)] font-sans">casuals</span></>}
           sub={<>{casualRows.length} registered on shift roster</>}
         />
         <Stat
@@ -367,19 +367,19 @@ export function AttendanceReport() {
       </KpiStrip>
 
       {/* Filter and Search Controls */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
         <div className="flex flex-1 items-center gap-2 max-w-md">
           <div className="relative flex-1">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-4)]" />
             <input
               type="text"
               placeholder="Search worker name or phone (e.g. Ronald, 077...)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-500"
+              className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[var(--line-2)] bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-4)] outline-none focus:border-slate-500"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-4)] hover:text-[var(--text-2)]">
                 <X className="size-3.5" />
               </button>
             )}
@@ -391,7 +391,7 @@ export function AttendanceReport() {
           <select
             value={sectorFilter}
             onChange={(e) => setSectorFilter(e.target.value)}
-            className="text-xs font-medium rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-700 outline-none"
+            className="text-xs font-medium rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-[var(--text-2)] outline-none"
           >
             <option value="all">All Departments ({sectorsList.length})</option>
             {sectorsList.map((sec) => (
@@ -400,12 +400,12 @@ export function AttendanceReport() {
           </select>
 
           {/* Engagement Filter */}
-          <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
+          <div className="inline-flex rounded-lg border border-[var(--line)] bg-[var(--surface-2)] p-0.5 text-xs">
             <button
               onClick={() => setEngagementFilter('all')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                engagementFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                engagementFilter === 'all' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               All Staff
@@ -414,7 +414,7 @@ export function AttendanceReport() {
               onClick={() => setEngagementFilter('casual')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                engagementFilter === 'casual' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                engagementFilter === 'casual' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               Casuals Only
@@ -423,14 +423,14 @@ export function AttendanceReport() {
               onClick={() => setEngagementFilter('permanent')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                engagementFilter === 'permanent' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                engagementFilter === 'permanent' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               Permanent
             </button>
           </div>
 
-          <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block" />
+          <div className="h-5 w-px bg-[var(--surface-3)] mx-1 hidden sm:block" />
 
           {/* Settle Payroll Action Button */}
           <Button
@@ -445,7 +445,7 @@ export function AttendanceReport() {
       </div>
 
       {/* Main Roster DataGrid */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl overflow-hidden shadow-2xs">
         <DataGrid
           rows={rows}
           columns={columns}
@@ -466,7 +466,7 @@ export function AttendanceReport() {
         <div className="space-y-4 pt-2">
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <div className="text-xs font-bold text-amber-800 uppercase tracking-wider">Payroll Summary</div>
-            <div className="text-2xl font-mono font-bold text-slate-900 mt-1">
+            <div className="text-2xl font-mono font-bold text-[var(--text)] mt-1">
               UGX {fmtUGX(totalCasualWagesDue)}
             </div>
             <div className="text-xs text-amber-900 mt-0.5">
@@ -475,7 +475,7 @@ export function AttendanceReport() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-[var(--text-2)] mb-1.5 uppercase tracking-wider">
               Disbursement Channel
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -485,12 +485,12 @@ export function AttendanceReport() {
                 className={cn(
                   'p-3 rounded-lg border text-left transition-colors',
                   payoutMethod === 'cash'
-                    ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900'
-                    : 'border-slate-200 hover:bg-slate-50'
+                    ? 'border-slate-900 bg-[var(--surface-2)] ring-1 ring-slate-900'
+                    : 'border-[var(--line)] hover:bg-[var(--surface-2)]'
                 )}
               >
-                <div className="font-semibold text-xs text-slate-900">Cash Envelopes</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Physical payout from cashier's safe</div>
+                <div className="font-semibold text-xs text-[var(--text)]">Cash Envelopes</div>
+                <div className="text-[11px] text-[var(--text-3)] mt-0.5">Physical payout from cashier's safe</div>
               </button>
               <button
                 type="button"
@@ -498,24 +498,24 @@ export function AttendanceReport() {
                 className={cn(
                   'p-3 rounded-lg border text-left transition-colors',
                   payoutMethod === 'momo'
-                    ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900'
-                    : 'border-slate-200 hover:bg-slate-50'
+                    ? 'border-slate-900 bg-[var(--surface-2)] ring-1 ring-slate-900'
+                    : 'border-[var(--line)] hover:bg-[var(--surface-2)]'
                 )}
               >
-                <div className="font-semibold text-xs text-slate-900">MTN / Airtel MoMo</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Export bulk list for telecom transfer</div>
+                <div className="font-semibold text-xs text-[var(--text)]">MTN / Airtel MoMo</div>
+                <div className="text-[11px] text-[var(--text-3)] mt-0.5">Export bulk list for telecom transfer</div>
               </button>
             </div>
           </div>
 
-          <div className="border border-slate-200 rounded-lg p-3 space-y-2 max-h-56 overflow-y-auto">
-            <div className="text-xs font-bold text-slate-700 uppercase">Payee Breakdown</div>
+          <div className="border border-[var(--line)] rounded-lg p-3 space-y-2 max-h-56 overflow-y-auto">
+            <div className="text-xs font-bold text-[var(--text-2)] uppercase">Payee Breakdown</div>
             {casualRows
               .filter((r) => r.wageDue > 0)
               .map((r) => (
-                <div key={r.person.id} className="flex items-center justify-between py-1 text-xs border-b border-slate-100 last:border-b-0">
-                  <span className="font-medium text-slate-800">{r.person.fullName}</span>
-                  <span className="font-mono font-bold text-slate-900">{fmtUGX(r.wageDue)}</span>
+                <div key={r.person.id} className="flex items-center justify-between py-1 text-xs border-b border-[var(--line)] last:border-b-0">
+                  <span className="font-medium text-[var(--text)]">{r.person.fullName}</span>
+                  <span className="font-mono font-bold text-[var(--text)]">{fmtUGX(r.wageDue)}</span>
                 </div>
               ))}
           </div>
@@ -531,12 +531,12 @@ export function AttendanceReport() {
       {/* Official Printable Muster Roll */}
       {printMusterOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 text-slate-900">
+          <div className="bg-[var(--surface)] rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 text-[var(--text)]">
             <div className="flex items-center justify-between border-b pb-4 mb-4">
               <div className="text-left">
-                <div className="text-xs font-bold tracking-widest text-slate-500 uppercase">TANAAD INDUSTRIAL GROUP</div>
+                <div className="text-xs font-bold tracking-widest text-[var(--text-3)] uppercase">TANAAD INDUSTRIAL GROUP</div>
                 <h2 className="text-lg font-bold">OFFICIAL DAILY LABOR MUSTER ROLL</h2>
-                <div className="text-xs text-slate-600">
+                <div className="text-xs text-[var(--text-2)]">
                   Facility: {site.name} · Date: {day} · Shift: {shiftKind.toUpperCase()}
                 </div>
               </div>
@@ -546,60 +546,60 @@ export function AttendanceReport() {
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-4 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-4 gap-3 bg-[var(--surface-2)] p-3 rounded-lg border border-[var(--line)]">
                 <div>
-                  <span className="text-slate-500 block">Total Headcount:</span>
+                  <span className="text-[var(--text-3)] block">Total Headcount:</span>
                   <span className="font-mono font-bold text-sm">{allRows.length} staff</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Present On Shift:</span>
+                  <span className="text-[var(--text-3)] block">Present On Shift:</span>
                   <span className="font-mono font-bold text-sm text-emerald-700">{presentCount + halfCount}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Casuals On Shift:</span>
+                  <span className="text-[var(--text-3)] block">Casuals On Shift:</span>
                   <span className="font-mono font-bold text-sm">{casualPresent}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Daily Payroll Due:</span>
+                  <span className="text-[var(--text-3)] block">Daily Payroll Due:</span>
                   <span className="font-mono font-bold text-sm text-amber-800">UGX {fmtUGX(totalCasualWagesDue)}</span>
                 </div>
               </div>
 
-              <table className="w-full border-collapse border border-slate-200 text-left">
-                <thead className="bg-slate-100">
+              <table className="w-full border-collapse border border-[var(--line)] text-left">
+                <thead className="bg-[var(--surface-2)]">
                   <tr>
-                    <th className="border border-slate-200 p-2 font-bold">Name</th>
-                    <th className="border border-slate-200 p-2 font-bold">Department</th>
-                    <th className="border border-slate-200 p-2 font-bold">Type</th>
-                    <th className="border border-slate-200 p-2 font-bold">Status</th>
-                    <th className="border border-slate-200 p-2 font-bold text-right">Wage (UGX)</th>
-                    <th className="border border-slate-200 p-2 font-bold text-center">Worker Signature</th>
+                    <th className="border border-[var(--line)] p-2 font-bold">Name</th>
+                    <th className="border border-[var(--line)] p-2 font-bold">Department</th>
+                    <th className="border border-[var(--line)] p-2 font-bold">Type</th>
+                    <th className="border border-[var(--line)] p-2 font-bold">Status</th>
+                    <th className="border border-[var(--line)] p-2 font-bold text-right">Wage (UGX)</th>
+                    <th className="border border-[var(--line)] p-2 font-bold text-center">Worker Signature</th>
                   </tr>
                 </thead>
                 <tbody>
                   {allRows.map((r) => (
-                    <tr key={r.person.id} className="border-b border-slate-200">
-                      <td className="border border-slate-200 p-2 font-semibold">{r.person.fullName}</td>
-                      <td className="border border-slate-200 p-2">{r.sector}</td>
-                      <td className="border border-slate-200 p-2">{r.isCasual ? 'Casual' : 'Staff'}</td>
-                      <td className="border border-slate-200 p-2 font-mono uppercase">{r.status}</td>
-                      <td className="border border-slate-200 p-2 text-right font-mono font-bold">{fmtUGX(r.wageDue)}</td>
-                      <td className="border border-slate-200 p-2 text-center text-slate-300">_________________</td>
+                    <tr key={r.person.id} className="border-b border-[var(--line)]">
+                      <td className="border border-[var(--line)] p-2 font-semibold">{r.person.fullName}</td>
+                      <td className="border border-[var(--line)] p-2">{r.sector}</td>
+                      <td className="border border-[var(--line)] p-2">{r.isCasual ? 'Casual' : 'Staff'}</td>
+                      <td className="border border-[var(--line)] p-2 font-mono uppercase">{r.status}</td>
+                      <td className="border border-[var(--line)] p-2 text-right font-mono font-bold">{fmtUGX(r.wageDue)}</td>
+                      <td className="border border-[var(--line)] p-2 text-center text-slate-300">_________________</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <div className="grid grid-cols-2 gap-8 pt-6 border-t border-slate-200 mt-6">
+              <div className="grid grid-cols-2 gap-8 pt-6 border-t border-[var(--line)] mt-6">
                 <div>
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase">Supervisor Handover Verification</div>
-                  <div className="h-10 border-b border-slate-400 mt-2" />
-                  <div className="text-xs mt-1 text-slate-700">Name & Signature</div>
+                  <div className="text-[11px] font-semibold text-[var(--text-3)] uppercase">Supervisor Handover Verification</div>
+                  <div className="h-10 border-b border-[var(--line-2)] mt-2" />
+                  <div className="text-xs mt-1 text-[var(--text-2)]">Name & Signature</div>
                 </div>
                 <div>
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase">Factory Cashier Payout Stamp</div>
-                  <div className="h-10 border-b border-slate-400 mt-2" />
-                  <div className="text-xs mt-1 text-slate-700">Official Stamp & Date</div>
+                  <div className="text-[11px] font-semibold text-[var(--text-3)] uppercase">Factory Cashier Payout Stamp</div>
+                  <div className="h-10 border-b border-[var(--line-2)] mt-2" />
+                  <div className="text-xs mt-1 text-[var(--text-2)]">Official Stamp & Date</div>
                 </div>
               </div>
             </div>

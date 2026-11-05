@@ -141,13 +141,13 @@ export function CashReport() {
       key: 'time',
       header: 'Time',
       mono: true,
-      cell: (r) => <span className="text-slate-500 font-mono text-xs">{r.at.slice(11, 16)}</span>,
+      cell: (r) => <span className="text-[var(--text-3)] font-mono text-xs">{r.at.slice(11, 16)}</span>,
     },
     {
       key: 'ref',
       header: 'Voucher Ref',
       cell: (r) => (
-        <span className="font-mono text-xs font-semibold text-slate-700">
+        <span className="font-mono text-xs font-semibold text-[var(--text-2)]">
           {r.subcategory ?? `VCH-${r.id.slice(0, 6).toUpperCase()}`}
         </span>
       ),
@@ -173,7 +173,7 @@ export function CashReport() {
       key: 'category',
       header: 'Expense Category',
       cell: (r) => (
-        <span className="inline-flex items-center gap-1.5 font-medium text-xs text-slate-800">
+        <span className="inline-flex items-center gap-1.5 font-medium text-xs text-[var(--text)]">
           <span className="size-2 rounded-full shrink-0" style={{ background: categoryColor(r.category) }} />
           {cats.label(r.category)}
         </span>
@@ -184,10 +184,10 @@ export function CashReport() {
       header: 'Payee & Purpose',
       cell: (r) => (
         <div>
-          <div className="font-semibold text-xs sm:text-sm text-slate-900 leading-tight">
+          <div className="font-semibold text-xs sm:text-sm text-[var(--text)] leading-tight">
             {r.note ?? r.payee ?? 'Direct safe disbursement'}
           </div>
-          {r.payee && r.note ? <div className="text-[11px] text-slate-500 mt-0.5">Payee: {r.payee}</div> : null}
+          {r.payee && r.note ? <div className="text-[11px] text-[var(--text-3)] mt-0.5">Payee: {r.payee}</div> : null}
         </div>
       ),
     },
@@ -201,7 +201,7 @@ export function CashReport() {
         <span
           className={cn(
             'font-mono font-bold text-sm',
-            r.direction === 'in' ? 'text-emerald-700' : 'text-slate-900'
+            r.direction === 'in' ? 'text-emerald-700' : 'text-[var(--text)]'
           )}
         >
           {r.direction === 'in' ? `+${fmtUGX(r.amount)}` : `-${fmtUGX(r.amount)}`}
@@ -214,7 +214,7 @@ export function CashReport() {
       align: 'right',
       mono: true,
       cell: (r) => (
-        <span className="font-mono text-slate-700 text-xs font-semibold">
+        <span className="font-mono text-[var(--text-2)] text-xs font-semibold">
           {fmtUGX(r.runningBalance)}
         </span>
       ),
@@ -229,7 +229,7 @@ export function CashReport() {
             e.stopPropagation();
             setSelectedVoucher(r);
           }}
-          className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+          className="text-xs font-semibold px-2 py-0.5 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-2)] border border-[var(--line)]"
         >
           Receipt
         </button>
@@ -240,17 +240,17 @@ export function CashReport() {
   return (
     <div className="flex flex-col gap-6">
       {/* Official Factory Cash Office Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-5 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-semibold tracking-wider text-slate-500 uppercase">
+            <div className="flex items-center gap-2 text-xs font-mono font-semibold tracking-wider text-[var(--text-3)] uppercase">
               <span className="size-2 rounded-full bg-emerald-500" />
               TANAAD CASH OFFICE · {site.legalName}
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)] mt-1">
               Petty Cash Book & Safe Management
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-3)] mt-0.5">
               Strict cash custody, voucher serial tracking, expense allocations and daily denomination count.
             </p>
           </div>
@@ -259,7 +259,7 @@ export function CashReport() {
             <select
               value={day}
               onChange={(e) => setDay(e.target.value)}
-              className="text-xs sm:text-sm font-medium rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-800 shadow-2xs outline-none"
+              className="text-xs sm:text-sm font-medium rounded-lg border border-[var(--line-2)] bg-[var(--surface)] px-3 py-1.5 text-[var(--text)] shadow-2xs outline-none"
             >
               {days.map((d) => (
                 <option key={d} value={d}>
@@ -314,19 +314,19 @@ export function CashReport() {
       </KpiStrip>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
         <div className="flex flex-1 items-center gap-2 max-w-md">
           <div className="relative flex-1">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-4)]" />
             <input
               type="text"
               placeholder="Search payee, description or voucher ref..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-500"
+              className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[var(--line-2)] bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-4)] outline-none focus:border-slate-500"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-4)] hover:text-[var(--text-2)]">
                 <X className="size-3.5" />
               </button>
             )}
@@ -335,12 +335,12 @@ export function CashReport() {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Flow Filter */}
-          <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
+          <div className="inline-flex rounded-lg border border-[var(--line)] bg-[var(--surface-2)] p-0.5 text-xs">
             <button
               onClick={() => setFlowFilter('all')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                flowFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                flowFilter === 'all' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               All Flows
@@ -349,7 +349,7 @@ export function CashReport() {
               onClick={() => setFlowFilter('in')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                flowFilter === 'in' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                flowFilter === 'in' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               Money In
@@ -358,7 +358,7 @@ export function CashReport() {
               onClick={() => setFlowFilter('out')}
               className={cn(
                 'px-2.5 py-1 rounded-md font-medium transition-colors',
-                flowFilter === 'out' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600'
+                flowFilter === 'out' ? 'bg-[var(--surface)] text-[var(--text)] shadow-2xs font-semibold' : 'text-[var(--text-2)]'
               )}
             >
               Money Out
@@ -369,7 +369,7 @@ export function CashReport() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="text-xs font-medium rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-700 outline-none"
+            className="text-xs font-medium rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-[var(--text-2)] outline-none"
           >
             <option value="all">All Expense Categories</option>
             {cats.items.map((c) => (
@@ -380,7 +380,7 @@ export function CashReport() {
       </div>
 
       {/* Main Cash Book Ledger Table */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl overflow-hidden shadow-2xs">
         <DataGrid
           rows={entries}
           columns={columns}
@@ -391,24 +391,24 @@ export function CashReport() {
       </div>
 
       {/* Expense Allocation Category Breakdown */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
-        <h2 className="text-base font-bold text-slate-900">Shift Expense Distribution by Department</h2>
-        <p className="text-xs text-slate-500 mb-4">Real-time accounting of operational disbursements</p>
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-5 shadow-2xs">
+        <h2 className="text-base font-bold text-[var(--text)]">Shift Expense Distribution by Department</h2>
+        <p className="text-xs text-[var(--text-3)] mb-4">Real-time accounting of operational disbursements</p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {cats.items.map((c) => {
             const catEntries = allEntries.filter((e) => e.direction === 'out' && e.category === c.id);
             const total = catEntries.reduce((t, e) => t + e.amount, 0);
             return (
-              <div key={c.id} className="p-3 rounded-lg border border-slate-100 bg-slate-50/50">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+              <div key={c.id} className="p-3 rounded-lg border border-[var(--line)] bg-[var(--surface-2)]">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-2)]">
                   <span className="size-2 rounded-full shrink-0" style={{ background: categoryColor(c.id as CashCategory) }} />
                   {c.label}
                 </div>
-                <div className="text-sm font-mono font-bold text-slate-900 mt-1.5">
+                <div className="text-sm font-mono font-bold text-[var(--text)] mt-1.5">
                   {fmtUGX(total)}
                 </div>
-                <div className="text-[10px] text-slate-400 mt-0.5">
+                <div className="text-[10px] text-[var(--text-4)] mt-0.5">
                   {catEntries.length} {catEntries.length === 1 ? 'voucher' : 'vouchers'}
                 </div>
               </div>
@@ -428,7 +428,7 @@ export function CashReport() {
         <div className="space-y-4 pt-2">
           {/* Flow Direction Toggle */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-[var(--text-2)] mb-1.5 uppercase tracking-wider">
               Transaction Direction
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -439,7 +439,7 @@ export function CashReport() {
                   'p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors',
                   voucherDirection === 'out'
                     ? 'bg-rose-50 border-rose-300 text-rose-800 ring-1 ring-rose-300'
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    : 'bg-[var(--surface)] border-[var(--line)] text-[var(--text-2)] hover:bg-[var(--surface-2)]'
                 )}
               >
                 <ArrowUpRight className="size-3.5 text-rose-600" />
@@ -452,7 +452,7 @@ export function CashReport() {
                   'p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors',
                   voucherDirection === 'in'
                     ? 'bg-emerald-50 border-emerald-300 text-emerald-800 ring-1 ring-emerald-300'
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    : 'bg-[var(--surface)] border-[var(--line)] text-[var(--text-2)] hover:bg-[var(--surface-2)]'
                 )}
               >
                 <ArrowDownLeft className="size-3.5 text-emerald-600" />
@@ -463,13 +463,13 @@ export function CashReport() {
 
           {/* Category */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-[var(--text-2)] mb-1 uppercase tracking-wider">
               Expense Category
             </label>
             <select
               value={voucherCategory}
               onChange={(e) => setVoucherCategory(e.target.value as CashCategory)}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white font-medium outline-none"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-[var(--line-2)] bg-[var(--surface)] font-medium outline-none"
             >
               {cats.items.map((c) => (
                 <option key={c.id} value={c.id}>{c.label}</option>
@@ -479,17 +479,17 @@ export function CashReport() {
 
           {/* Amount */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-[var(--text-2)] mb-1 uppercase tracking-wider">
               Amount (UGX)
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-semibold text-slate-400">UGX</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-semibold text-[var(--text-4)]">UGX</span>
               <input
                 type="number"
                 placeholder="e.g. 150000"
                 value={voucherAmount}
                 onChange={(e) => setVoucherAmount(e.target.value)}
-                className="w-full pl-12 pr-3 py-2 text-sm font-mono font-bold rounded-lg border border-slate-300 outline-none focus:border-slate-500"
+                className="w-full pl-12 pr-3 py-2 text-sm font-mono font-bold rounded-lg border border-[var(--line-2)] outline-none focus:border-slate-500"
               />
             </div>
             <div className="flex gap-2 mt-1.5">
@@ -498,7 +498,7 @@ export function CashReport() {
                   key={quick}
                   type="button"
                   onClick={() => setVoucherAmount(String(quick))}
-                  className="px-2 py-0.5 text-[11px] font-mono rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+                  className="px-2 py-0.5 text-[11px] font-mono rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-2)] border border-[var(--line)]"
                 >
                   {fmtUGX(quick)}
                 </button>
@@ -508,7 +508,7 @@ export function CashReport() {
 
           {/* Payee */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-[var(--text-2)] mb-1 uppercase tracking-wider">
               Payee / Beneficiary
             </label>
             <input
@@ -516,13 +516,13 @@ export function CashReport() {
               placeholder="e.g. TotalEnergies Fuel Station / Mukasa David"
               value={voucherPayee}
               onChange={(e) => setVoucherPayee(e.target.value)}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 outline-none focus:border-slate-500"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-[var(--line-2)] outline-none focus:border-slate-500"
             />
           </div>
 
           {/* Purpose / Note */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-[var(--text-2)] mb-1 uppercase tracking-wider">
               Description & Operational Purpose
             </label>
             <textarea
@@ -530,7 +530,7 @@ export function CashReport() {
               placeholder="e.g. 50 Litres Diesel for Perkins generator during Umeme blackout"
               value={voucherNote}
               onChange={(e) => setVoucherNote(e.target.value)}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 outline-none focus:border-slate-500"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-[var(--line-2)] outline-none focus:border-slate-500"
             />
           </div>
 
@@ -545,25 +545,25 @@ export function CashReport() {
       {/* Safe Physical Note Reconciliation Dialog */}
       {reconcileModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full p-6 text-slate-900">
+          <div className="bg-[var(--surface)] rounded-xl shadow-2xl max-w-xl w-full p-6 text-[var(--text)]">
             <div className="flex items-center justify-between border-b pb-3 mb-4">
               <div>
-                <h2 className="text-base font-bold text-slate-900">Safe Physical Note Count & Reconciliation</h2>
-                <p className="text-xs text-slate-500">Denomination audit against expected safe balance</p>
+                <h2 className="text-base font-bold text-[var(--text)]">Safe Physical Note Count & Reconciliation</h2>
+                <p className="text-xs text-[var(--text-3)]">Denomination audit against expected safe balance</p>
               </div>
-              <button onClick={() => setReconcileModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setReconcileModalOpen(false)} className="text-[var(--text-4)] hover:text-[var(--text-2)]">
                 <X className="size-5" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-2 gap-2 bg-[var(--surface-2)] p-3 rounded-lg border border-[var(--line)]">
                 <div>
-                  <span className="text-slate-500 block">Expected System Balance:</span>
-                  <span className="font-mono font-bold text-sm text-slate-900">UGX {fmtUGX(expectedClosing)}</span>
+                  <span className="text-[var(--text-3)] block">Expected System Balance:</span>
+                  <span className="font-mono font-bold text-sm text-[var(--text)]">UGX {fmtUGX(expectedClosing)}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Physical Cash Counted:</span>
+                  <span className="text-[var(--text-3)] block">Physical Cash Counted:</span>
                   <span className="font-mono font-bold text-sm text-blue-700">UGX {fmtUGX(physicalTotal)}</span>
                 </div>
               </div>
@@ -571,57 +571,57 @@ export function CashReport() {
               {/* Denominations Inputs */}
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">50,000 UGX Notes</label>
+                  <label className="block text-[11px] font-semibold text-[var(--text-2)] mb-0.5">50,000 UGX Notes</label>
                   <input
                     type="number"
                     value={note50k}
                     onChange={(e) => setNote50k(e.target.value)}
-                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-slate-300"
+                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-[var(--line-2)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">20,000 UGX Notes</label>
+                  <label className="block text-[11px] font-semibold text-[var(--text-2)] mb-0.5">20,000 UGX Notes</label>
                   <input
                     type="number"
                     value={note20k}
                     onChange={(e) => setNote20k(e.target.value)}
-                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-slate-300"
+                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-[var(--line-2)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">10,000 UGX Notes</label>
+                  <label className="block text-[11px] font-semibold text-[var(--text-2)] mb-0.5">10,000 UGX Notes</label>
                   <input
                     type="number"
                     value={note10k}
                     onChange={(e) => setNote10k(e.target.value)}
-                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-slate-300"
+                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-[var(--line-2)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">5,000 UGX Notes</label>
+                  <label className="block text-[11px] font-semibold text-[var(--text-2)] mb-0.5">5,000 UGX Notes</label>
                   <input
                     type="number"
                     value={note5k}
                     onChange={(e) => setNote5k(e.target.value)}
-                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-slate-300"
+                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-[var(--line-2)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">2,000 & 1,000 Notes</label>
+                  <label className="block text-[11px] font-semibold text-[var(--text-2)] mb-0.5">2,000 & 1,000 Notes</label>
                   <input
                     type="number"
                     value={note2k}
                     onChange={(e) => setNote2k(e.target.value)}
-                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-slate-300"
+                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-[var(--line-2)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Coins Total (UGX)</label>
+                  <label className="block text-[11px] font-semibold text-[var(--text-2)] mb-0.5">Coins Total (UGX)</label>
                   <input
                     type="number"
                     value={coins}
                     onChange={(e) => setCoins(e.target.value)}
-                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-slate-300"
+                    className="w-full px-2 py-1.5 text-xs font-mono rounded border border-[var(--line-2)]"
                   />
                 </div>
               </div>
@@ -672,47 +672,47 @@ export function CashReport() {
       {/* Printable Individual Cash Voucher Modal */}
       {selectedVoucher && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-slate-900">
+          <div className="bg-[var(--surface)] rounded-xl shadow-2xl max-w-md w-full p-6 text-[var(--text)]">
             <div className="border-b pb-3 mb-4">
-              <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">TANAAD MANUFACTURING GROUP</div>
-              <h2 className="text-base font-bold text-slate-900">OFFICIAL PETTY CASH VOUCHER</h2>
-              <div className="text-xs text-slate-600 font-mono mt-0.5">
+              <div className="text-[10px] font-bold tracking-widest text-[var(--text-3)] uppercase">TANAAD MANUFACTURING GROUP</div>
+              <h2 className="text-base font-bold text-[var(--text)]">OFFICIAL PETTY CASH VOUCHER</h2>
+              <div className="text-xs text-[var(--text-2)] font-mono mt-0.5">
                 Ref: {selectedVoucher.receiptNo ?? 'VCH-202611-001'} · Date: {selectedVoucher.at.slice(0, 10)}
               </div>
             </div>
 
             <div className="space-y-2.5 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Flow Direction:</span>
+              <div className="flex justify-between py-1 border-b border-[var(--line)]">
+                <span className="text-[var(--text-3)]">Flow Direction:</span>
                 <span className="font-bold uppercase">{selectedVoucher.direction === 'in' ? 'Receipt (In)' : 'Payment (Out)'}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Expense Category:</span>
+              <div className="flex justify-between py-1 border-b border-[var(--line)]">
+                <span className="text-[var(--text-3)]">Expense Category:</span>
                 <span className="font-semibold">{cats.label(selectedVoucher.category)}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Beneficiary / Payee:</span>
+              <div className="flex justify-between py-1 border-b border-[var(--line)]">
+                <span className="text-[var(--text-3)]">Beneficiary / Payee:</span>
                 <span className="font-semibold">{selectedVoucher.payee ?? 'Internal'}</span>
               </div>
-              <div className="py-1 border-b border-slate-100">
-                <span className="text-slate-500 block mb-0.5">Purpose & Description:</span>
-                <span className="font-medium text-slate-800">{selectedVoucher.note ?? 'Direct operational expense'}</span>
+              <div className="py-1 border-b border-[var(--line)]">
+                <span className="text-[var(--text-3)] block mb-0.5">Purpose & Description:</span>
+                <span className="font-medium text-[var(--text)]">{selectedVoucher.note ?? 'Direct operational expense'}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-slate-200 bg-slate-50 px-2 rounded">
-                <span className="text-xs font-bold text-slate-800 uppercase">Total Amount:</span>
-                <span className="font-mono font-bold text-sm text-slate-900">UGX {fmtUGX(selectedVoucher.amount)}</span>
+              <div className="flex justify-between py-2 border-b border-[var(--line)] bg-[var(--surface-2)] px-2 rounded">
+                <span className="text-xs font-bold text-[var(--text)] uppercase">Total Amount:</span>
+                <span className="font-mono font-bold text-sm text-[var(--text)]">UGX {fmtUGX(selectedVoucher.amount)}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4 mt-4 border-t border-slate-200">
+              <div className="grid grid-cols-2 gap-4 pt-4 mt-4 border-t border-[var(--line)]">
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Prepared By</div>
-                  <div className="h-8 border-b border-slate-300 mt-1" />
-                  <div className="text-[10px] text-slate-600 mt-0.5">Cashier Signature</div>
+                  <div className="text-[10px] text-[var(--text-3)] uppercase font-semibold">Prepared By</div>
+                  <div className="h-8 border-b border-[var(--line-2)] mt-1" />
+                  <div className="text-[10px] text-[var(--text-2)] mt-0.5">Cashier Signature</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Authorized By</div>
-                  <div className="h-8 border-b border-slate-300 mt-1" />
-                  <div className="text-[10px] text-slate-600 mt-0.5">Supervisor / Manager</div>
+                  <div className="text-[10px] text-[var(--text-3)] uppercase font-semibold">Authorized By</div>
+                  <div className="h-8 border-b border-[var(--line-2)] mt-1" />
+                  <div className="text-[10px] text-[var(--text-2)] mt-0.5">Supervisor / Manager</div>
                 </div>
               </div>
             </div>

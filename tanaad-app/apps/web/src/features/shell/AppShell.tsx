@@ -182,7 +182,6 @@ function Sidebar({ scope, items, pathname, collapsed, canGroup, embedded, onClos
             </div>
           );
         })}
-        {!collapsed && <button onClick={() => prefs.setPalette(true)} className="mt-3 w-full flex items-center gap-2 h-9 px-2.5 rounded-lg border border-[var(--side-line)] text-[12.5px] text-[var(--side-text-dim)] hover:bg-[var(--side-hover)] hover:text-[var(--side-text)] touch:hidden"><Search className="size-3.5" /><span className="flex-1 text-left">Quick search…</span></button>}
       </nav>
 
       {/* Person */}
@@ -218,16 +217,16 @@ function TitleBar({ scope, current, hubLabel, desktop, onMenu }: { scope: 'group
       <IconButton icon={desktop ? PanelLeft : MenuIcon} label={desktop ? 'Toggle sidebar' : 'Menu'} onClick={onMenu} className="app-no-drag" />
       <nav className="app-no-drag flex items-center gap-2 min-w-0 t-base pl-1" aria-label="Breadcrumb">
         <div className="flex items-center gap-1.5">
-          <span className="font-bold text-xs tracking-wider uppercase text-slate-800">TANAAD ERP</span>
-          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">v4.0</span>
+          <span className="font-bold text-xs tracking-wider uppercase text-[var(--text)]">TANAAD ERP</span>
+          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--line)]">v4.0</span>
         </div>
-        <ChevronRight className="size-3 text-slate-400 shrink-0" />
+        <ChevronRight className="size-3 text-[var(--text-4)] shrink-0" />
         <span className="size-2 rounded-full shrink-0" style={{ background: SITE_COLOR[key] }} />
-        <span className="font-semibold text-slate-900 text-xs sm:text-sm whitespace-nowrap">{scope === 'group' ? 'Group Operations HQ' : site.name}</span>
+        <span className="font-semibold text-[var(--text)] text-xs sm:text-sm whitespace-nowrap">{scope === 'group' ? 'Group Operations HQ' : site.name}</span>
         {current && desktop && (
           <>
-            <ChevronRight className="size-3 text-slate-400 shrink-0" />
-            <span className="font-semibold text-slate-700 text-xs sm:text-sm whitespace-nowrap">{current.label}</span>
+            <ChevronRight className="size-3 text-[var(--text-4)] shrink-0" />
+            <span className="font-semibold text-[var(--text-2)] text-xs sm:text-sm whitespace-nowrap">{current.label}</span>
           </>
         )}
       </nav>
@@ -238,8 +237,8 @@ function TitleBar({ scope, current, hubLabel, desktop, onMenu }: { scope: 'group
         </button>
       ) : <IconButton icon={Search} label="Search" onClick={() => prefs.setPalette(true)} className="app-no-drag" />}
       <div className="flex-1 min-w-2 hidden lg:block" />
-      <div className={cn('app-no-drag hidden sm:flex items-center gap-1.5 px-2.5 h-7 rounded-full text-xs font-medium border', !online ? 'bg-rose-50 text-rose-700 border-rose-200' : pending ? 'bg-amber-50 text-amber-700 border-amber-200' : 'text-slate-600 bg-slate-50 border-slate-200')} title={online ? 'Local SQLite offline buffer synchronized' : 'Offline mode active. All inputs buffered locally.'}>
-        {!online ? <CloudOff className="size-3.5" /> : pending ? <RefreshCw className="size-3.5 animate-spin" /> : <span className="size-1.5 rounded-full bg-emerald-600" />}
+      <div className={cn('app-no-drag hidden sm:flex items-center gap-1.5 px-2.5 h-7 rounded-full text-xs font-medium border', !online ? 'bg-[var(--bad-bg)] text-[var(--bad)] border-transparent' : pending ? 'bg-[var(--warn-bg)] text-[var(--warn)] border-transparent' : 'text-[var(--text-2)] bg-[var(--surface-2)] border-[var(--line)]')} title={online ? 'Local SQLite offline buffer synchronized' : 'Offline mode active. All inputs buffered locally.'}>
+        {!online ? <CloudOff className="size-3.5" /> : pending ? <RefreshCw className="size-3.5 animate-spin" /> : <span className="size-1.5 rounded-full bg-[var(--ok)]" />}
         <span>{!online ? `Offline · ${pending} buffered` : pending ? `Syncing ${pending}` : 'Database Live'}</span>
       </div>
       <div ref={bell} className="relative app-no-drag">
@@ -254,9 +253,6 @@ function TitleBar({ scope, current, hubLabel, desktop, onMenu }: { scope: 'group
           </div>
         )}
       </div>
-      <IconButton icon={prefs.theme === 'dark' ? Sun : Moon} label={prefs.theme === 'dark' ? 'Light theme' : 'Dark theme'} onClick={prefs.toggleTheme} className="app-no-drag hidden sm:grid" />
-      <IconButton icon={HelpCircle} label="Help & shortcuts" onClick={() => prefs.setHelp(true)} className="app-no-drag hidden sm:grid" />
-      {!desktop && <Menu align="right" items={[{ label: 'All portals', icon: LayoutGrid, onSelect: () => nav({ to: '/portals' as never }) }, { label: prefs.theme === 'dark' ? 'Light theme' : 'Dark theme', icon: Contrast, onSelect: prefs.toggleTheme }, { label: 'Sign out', icon: LogOut, divider: true, onSelect: () => { signOut(); nav({ to: '/' }); } }]} trigger={({ toggle }) => <button onClick={toggle} className="ml-0.5" aria-label="Account"><Avatar name={user?.name ?? '?'} seed={user?.avatarSeed} size={30} /></button>} />}
     </header>
   );
 }
