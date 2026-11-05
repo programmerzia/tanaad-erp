@@ -46,21 +46,9 @@ export const SITE_NAV: NavItem[] = [
   { to: 'today', hub: 'today', keys: 'g t', label: 'Today & Workflow', icon: Home },
   { to: 'dashboard', hub: 'dashboard', keys: 'g d', label: 'Factory Dashboard', icon: LayoutDashboard },
 
-  // People & Attendance
-  { to: 'people/attendance', hub: 'people', keys: 'g a', label: 'Attendance Sheet', icon: Users, group: 'People', roles: ['supervisor', 'site_manager', 'ceo', 'group_admin'] },
-  { to: 'reports/attendance', hub: 'people', label: 'Attendance & Wages (v4)', icon: Users, group: 'People', roles: ['supervisor', 'site_manager', 'cashier', 'ceo', 'group_admin'] },
-  { to: 'people/signup', hub: 'people', keys: 'g u', label: 'Casual Sign-up', icon: Users, group: 'People', roles: ['supervisor', 'site_manager'] },
-  { to: 'people/registry', hub: 'people', keys: 'g p', label: 'Workers & Pay', icon: ClipboardList, group: 'People', roles: ['site_manager', 'supervisor', 'ceo', 'group_admin'] },
-  { to: 'people/settlement', hub: 'people', keys: 'g l', label: 'Wage Settlement', icon: Wallet, group: 'People', roles: ['site_manager', 'cashier', 'ceo', 'group_admin'] },
-
-  // Cash & Expenses
-  { to: 'cash', hub: 'cash', keys: 'g c', label: 'Cash Book & Close', icon: Wallet, group: 'Cash', roles: ['cashier', 'site_manager', 'ceo', 'group_admin'] },
-  { to: 'reports/cash', hub: 'cash', label: 'Cash & Safe Book (v4)', icon: Wallet, group: 'Cash', roles: ['cashier', 'site_manager', 'ceo', 'group_admin', 'sales'] },
-  { to: 'cash/expense', hub: 'cash', keys: 'g e', label: 'Record Expense', icon: Wallet, group: 'Cash', roles: ['cashier', 'site_manager'] },
-
   // Production
+  { to: 'reports/production', hub: 'production', keys: 'g p', label: 'Loom Matrix MES', icon: Factory, group: 'Production', roles: ['supervisor', 'site_manager', 'ceo', 'group_admin', 'mechanic', 'storekeeper'] },
   { to: 'production/wall', hub: 'production', keys: 'g w', label: 'Machine Wall', icon: Factory, group: 'Production', roles: ['supervisor', 'site_manager', 'ceo', 'group_admin', 'mechanic'] },
-  { to: 'reports/production', hub: 'production', keys: 'g p', label: 'Loom Matrix MES (v4)', icon: Factory, group: 'Production', roles: ['supervisor', 'site_manager', 'ceo', 'group_admin', 'mechanic', 'storekeeper'] },
   { to: 'production/mixer', hub: 'production', label: 'Mixer Batch', icon: FlaskConical, group: 'Production', sites: ['mats'], roles: ['supervisor', 'site_manager'] },
   { to: 'production/extruders', hub: 'production', label: 'Extruders & Racks', icon: Factory, group: 'Production', sites: ['mats'], roles: ['supervisor', 'site_manager'] },
   { to: 'production/finishing', hub: 'production', label: 'Finishing & Bundles', icon: Tag, group: 'Production', sites: ['mats'], roles: ['supervisor', 'site_manager'] },
@@ -72,9 +60,21 @@ export const SITE_NAV: NavItem[] = [
   { to: 'production/intake', hub: 'production', label: 'Scrap Weigh-In', icon: Scale, group: 'Production', sites: ['recycling'], roles: ['supervisor', 'site_manager', 'gate', 'storekeeper', 'cashier'] },
   { to: 'production/collectors', hub: 'production', label: 'Collector Ledger', icon: ClipboardList, group: 'Production', sites: ['recycling'], roles: ['supervisor', 'site_manager', 'cashier', 'ceo'] },
   { to: 'production/sacks', hub: 'production', label: 'Pellet Sacks', icon: Tag, group: 'Production', sites: ['recycling'], roles: ['supervisor', 'site_manager'] },
-  { to: 'production/sheet', hub: 'production', keys: 'g h', label: 'Shift Log Sheet', icon: ScrollText, group: 'Production', roles: ['supervisor', 'site_manager', 'ceo', 'group_admin'] },
+  { to: 'production/sheet', hub: 'production', keys: 'g h', label: 'Shift Handover Log', icon: ScrollText, group: 'Production', roles: ['supervisor', 'site_manager', 'ceo', 'group_admin'] },
   { to: 'production/labels', hub: 'production', keys: 'g j', label: 'Print Labels', icon: Tag, group: 'Production', roles: ['supervisor', 'site_manager', 'storekeeper'] },
   { to: 'production/scan', hub: 'production', keys: 'g f', label: 'Scan Barcode', icon: Sparkles, group: 'Production' },
+
+  // People & Attendance
+  { to: 'reports/attendance', hub: 'people', keys: 'g a', label: 'Attendance & Wages', icon: Users, group: 'People', roles: ['supervisor', 'site_manager', 'cashier', 'ceo', 'group_admin'] },
+  { to: 'people/attendance', hub: 'people', label: 'Attendance Sheet', icon: Users, group: 'People', roles: ['supervisor', 'site_manager', 'ceo', 'group_admin'] },
+  { to: 'people/signup', hub: 'people', keys: 'g u', label: 'Casual Sign-up', icon: Users, group: 'People', roles: ['supervisor', 'site_manager'] },
+  { to: 'people/registry', hub: 'people', keys: 'g p', label: 'Workers Registry', icon: ClipboardList, group: 'People', roles: ['site_manager', 'supervisor', 'ceo', 'group_admin'] },
+  { to: 'people/settlement', hub: 'people', keys: 'g l', label: 'Wage Settlement', icon: Wallet, group: 'People', roles: ['site_manager', 'cashier', 'ceo', 'group_admin'] },
+
+  // Cash & Expenses
+  { to: 'reports/cash', hub: 'cash', keys: 'g c', label: 'Factory Cash Book', icon: Wallet, group: 'Cash', roles: ['cashier', 'site_manager', 'ceo', 'group_admin', 'sales'] },
+  { to: 'cash', hub: 'cash', label: 'Daily Cash Close', icon: Wallet, group: 'Cash', roles: ['cashier', 'site_manager', 'ceo', 'group_admin'] },
+  { to: 'cash/expense', hub: 'cash', keys: 'g e', label: 'Record Expense', icon: Wallet, group: 'Cash', roles: ['cashier', 'site_manager'] },
 
   // Stock & Receiving
   { to: 'stock', hub: 'stock', keys: 'g s', label: 'Stock Overview', icon: Boxes, group: 'Stock', roles: ['storekeeper', 'site_manager', 'ceo', 'group_admin', 'sales'] },
@@ -85,8 +85,8 @@ export const SITE_NAV: NavItem[] = [
   { to: 'stock/movements', hub: 'stock', label: 'Stock Movements', icon: Boxes, group: 'Stock', roles: ['storekeeper', 'site_manager'] },
 
   // Dispatch & Gate
+  { to: 'reports/dispatch', hub: 'dispatch', keys: 'g d', label: 'Weighbridge & Gate Pass', icon: Truck, group: 'Stock', roles: ['storekeeper', 'gate', 'site_manager', 'ceo', 'group_admin', 'sales', 'driver'] },
   { to: 'stock/dispatch', hub: 'dispatch', keys: 'g x', label: 'Load Lorry & Gate', icon: Truck, group: 'Stock', roles: ['storekeeper', 'gate', 'site_manager', 'ceo', 'group_admin'] },
-  { to: 'reports/dispatch', hub: 'dispatch', keys: 'g k', label: 'Weighbridge & Gate (v4)', icon: Truck, group: 'Stock', roles: ['storekeeper', 'gate', 'site_manager', 'ceo', 'group_admin', 'sales', 'driver'] },
   { to: 'stock/deliveries', hub: 'dispatch', keys: 'g v', label: 'Deliveries & POD', icon: Truck, group: 'Stock', roles: ['storekeeper', 'sales', 'site_manager', 'driver', 'ceo'] },
 
   // Maintenance
@@ -149,7 +149,7 @@ export const SITE_HUBS: Hub[] = [
   { key: 'dispatch', label: 'Dispatch & Gate', icon: Truck },
   { key: 'maintenance', label: 'Spares & Repairs', icon: Wrench },
   { key: 'sales', label: 'Sales & Orders', icon: ShoppingCart },
-  { key: 'reports', label: 'Reports & Analytics', icon: BarChart3 },
+  { key: 'reports', label: 'Reports & Export', icon: BarChart3 },
   { key: 'settings', label: 'Settings', icon: Settings },
 ];
 

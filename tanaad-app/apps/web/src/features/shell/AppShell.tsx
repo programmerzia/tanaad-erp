@@ -1,7 +1,7 @@
 import { COMPANY } from '@/config/company';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
-import { Bell, Building2, ChevronRight, ChevronsUpDown, Cloud, CloudOff, Contrast, Download, Factory, HelpCircle, Keyboard, LayoutGrid, LogOut, Menu as MenuIcon, MonitorSmartphone, Moon, MoreHorizontal, PanelLeft, Recycle, RefreshCw, Search, ShoppingBag, Sun, X, type LucideIcon } from 'lucide-react';
+import { Bell, Building2, ChevronDown, ChevronRight, ChevronsUpDown, Clock, Cloud, CloudOff, Contrast, Download, Factory, HelpCircle, Keyboard, LayoutGrid, LogOut, Maximize, Menu as MenuIcon, Minimize, MonitorSmartphone, Moon, MoreHorizontal, PanelLeft, Recycle, RefreshCw, Search, ShoppingBag, Sun, X, type LucideIcon } from 'lucide-react';
 import type { Role, SiteCode } from '@tanaad/domain';
 import { useStore, pendingCount } from '@/data/store';
 import { useSite } from '@/app/hooks';
@@ -109,8 +109,7 @@ export function AppShell({ scope }: { scope: 'group' | 'site' }) {
 
 /* ───────────────────────────── Sidebar: the branded frame ───────────────────────────── */
 function Sidebar({ scope, items, pathname, collapsed, canGroup, embedded, onClose }: { scope: 'group' | 'site'; items: Item[]; pathname: string; collapsed: boolean; canGroup: boolean; embedded?: boolean; onClose?: () => void }) {
-  const site = useSite(); const nav = useNavigate(); const s = useStore(); const prefs = usePrefs(); const pwa = usePwa();
-  const user = s.users.find((u) => u.id === s.session?.userId); const role = s.session?.role ?? 'supervisor';
+  const site = useSite(); const nav = useNavigate(); const s = useStore();
   const access = useMemo(() => portalsFor(s, s.session?.userId ?? ''), [s.users, s.session?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
   const active = useMemo(() => [...items].sort((a, b) => b.href.length - a.href.length).find((n) => pathname === n.href || pathname.startsWith(`${n.href}/`))?.href, [items, pathname]);
   const key: SiteCode | 'group' = scope === 'group' ? 'group' : site.id; const WsIcon = SITE_ICON[key];
@@ -118,18 +117,16 @@ function Sidebar({ scope, items, pathname, collapsed, canGroup, embedded, onClos
   const hubList = useMemo(() => (scope === 'group' ? GROUP_HUBS : SITE_HUBS).map((h) => ({ ...h, pages: items.filter((n) => n.hub === h.key) })).filter((h) => h.pages.length > 0), [scope, items]);
   const exCount = scope === 'site' ? openExceptions(s, site.id).length : openExceptions(s).length;
 
+  // Real accordion expansion state for child navigation items
+  const [openHubs, setOpenHubs] = useState<Record<string, boolean>>({});
+  const toggleHub = (k: string, isCurrent: boolean) => {
+    setOpenHubs((prev) => ({ ...prev, [k]: !(prev[k] ?? isCurrent) }));
+  };
+
   const wsItems: MenuItem[] = [
     ...access.sites.filter((p) => p.roles.length).map((p) => ({ label: SITE_LIST.find((x) => x.id === p.id)!.name, hint: canGroup ? undefined : roleLabel(p.roles[0]), checked: scope === 'site' && p.id === site.id, onSelect: () => { if (!canGroup) s.signIn(s.session!.userId, p.roles[0], p.id); nav({ to: `/s/${p.id}/${canGroup ? 'dashboard' : 'today'}` as never }); } })),
     ...(canGroup ? [{ label: 'Group HQ', checked: scope === 'group', onSelect: () => nav({ to: '/g/cockpit' as never }) }] : []),
     { label: 'All portals & sites', icon: LayoutGrid, divider: true, onSelect: () => nav({ to: '/portals' as never }) },
-  ];
-  const userItems: MenuItem[] = [
-    { label: 'Switch portal / site', icon: LayoutGrid, onSelect: () => nav({ to: '/portals' as never }) },
-    { label: prefs.theme === 'dark' ? 'Light theme' : 'Dark theme', icon: Contrast, onSelect: prefs.toggleTheme, divider: true },
-    { label: prefs.density === 'compact' ? 'Touch layout (larger buttons)' : 'Compact layout', icon: MonitorSmartphone, onSelect: prefs.toggleDensity },
-    { label: 'Keyboard shortcuts', icon: Keyboard, onSelect: () => prefs.setHelp(true) },
-    ...(pwa.canInstall ? [{ label: 'Install app', icon: Download, onSelect: () => void pwa.install() }] : []),
-    { label: 'Sign out', icon: LogOut, divider: true, onSelect: () => { s.signOut(); nav({ to: '/' }); } },
   ];
 
   return (
@@ -146,32 +143,67 @@ function Sidebar({ scope, items, pathname, collapsed, canGroup, embedded, onClos
         {embedded && <button onClick={onClose} aria-label="Close menu" className="size-9 grid place-items-center rounded-lg hover:bg-[var(--side-hover)]"><X className="size-4" /></button>}
       </div>
 
-      {/* Navigation: work areas with expandable sub-pages right in the sidebar */}
+      {/* Navigation: work areas with collapsible sub-pages */}
       <nav className={cn('flex-1 overflow-y-auto scrollbar-thin py-2.5', collapsed ? 'px-2' : 'px-2.5')} aria-label="Main">
         {hubList.map((h) => {
           const on = h.pages.some((n) => n.href === active);
-          const target = hubMemory[`${scopeKey}:${h.key}`] && h.pages.some((n) => n.href === hubMemory[`${scopeKey}:${h.key}`]) ? hubMemory[`${scopeKey}:${h.key}`] : h.pages[0].href;
-          const label = h.pages.length === 1 ? h.pages[0].label : h.label;
+          const hasChildren = h.pages.length > 1;
+          const isOpen = openHubs[h.key] ?? on;
           const badge = h.key === 'dashboard' || h.key === 'decisions' ? exCount : 0;
-          const showSubPages = !collapsed && h.pages.length > 1 && (on || h.pages.length <= 3);
+
           return (
             <div key={h.key} className="mb-0.5">
-              <Link to={target as never} title={collapsed ? label : undefined} aria-current={on ? 'page' : undefined}
-                className={cn('group relative flex items-center gap-2.5 h-9 touch:h-11 rounded-lg t-base outline-offset-0', collapsed ? 'justify-center px-0' : 'px-2.5', on ? 'bg-[var(--side-active)] text-[var(--side-text-strong)] font-medium' : 'hover:bg-[var(--side-hover)] hover:text-[var(--side-text-strong)]')}>
-                {on && <span className="absolute -left-2.5 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-[var(--accent)]" />}
-                <h.icon className={cn('size-[18px] touch:size-5 shrink-0', on ? 'text-[var(--color-amber-400)]' : 'opacity-80')} strokeWidth={2} />
-                {!collapsed && <span className="truncate flex-1">{label}</span>}
-                {!collapsed && badge > 0 && <span className="num min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--accent)] text-white text-[10.5px] font-semibold grid place-items-center">{badge}</span>}
-                {!collapsed && !badge && h.pages.length > 1 && <ChevronRight className={cn('size-3.5 text-[var(--side-text-dim)] transition-transform', showSubPages && 'rotate-90')} />}
-                {collapsed && badge > 0 && <span className="absolute top-1 right-1.5 size-2 rounded-full bg-[var(--accent)]" />}
-              </Link>
-              {showSubPages && (
+              {hasChildren ? (
+                <button
+                  type="button"
+                  onClick={() => toggleHub(h.key, on)}
+                  title={collapsed ? h.label : undefined}
+                  className={cn(
+                    'w-full group relative flex items-center gap-2.5 h-9 touch:h-11 rounded-lg t-base outline-offset-0 text-left transition-colors',
+                    collapsed ? 'justify-center px-0' : 'px-2.5',
+                    on ? 'bg-[var(--side-active)] text-[var(--side-text-strong)] font-medium' : 'hover:bg-[var(--side-hover)] hover:text-[var(--side-text-strong)]'
+                  )}
+                >
+                  {on && <span className="absolute -left-2.5 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-[var(--accent)]" />}
+                  <h.icon className={cn('size-[18px] touch:size-5 shrink-0', on ? 'text-[var(--color-amber-400)]' : 'opacity-80')} strokeWidth={2} />
+                  {!collapsed && <span className="truncate flex-1">{h.label}</span>}
+                  {!collapsed && badge > 0 && <span className="num min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--accent)] text-white text-[10.5px] font-semibold grid place-items-center">{badge}</span>}
+                  {!collapsed && <ChevronRight className={cn('size-3.5 text-[var(--side-text-dim)] transition-transform duration-200', isOpen && 'rotate-90')} />}
+                  {collapsed && badge > 0 && <span className="absolute top-1 right-1.5 size-2 rounded-full bg-[var(--accent)]" />}
+                </button>
+              ) : (
+                <Link
+                  to={h.pages[0].href as never}
+                  title={collapsed ? h.label : undefined}
+                  aria-current={on ? 'page' : undefined}
+                  className={cn(
+                    'group relative flex items-center gap-2.5 h-9 touch:h-11 rounded-lg t-base outline-offset-0 transition-colors',
+                    collapsed ? 'justify-center px-0' : 'px-2.5',
+                    on ? 'bg-[var(--side-active)] text-[var(--side-text-strong)] font-medium' : 'hover:bg-[var(--side-hover)] hover:text-[var(--side-text-strong)]'
+                  )}
+                >
+                  {on && <span className="absolute -left-2.5 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-[var(--accent)]" />}
+                  <h.icon className={cn('size-[18px] touch:size-5 shrink-0', on ? 'text-[var(--color-amber-400)]' : 'opacity-80')} strokeWidth={2} />
+                  {!collapsed && <span className="truncate flex-1">{h.label}</span>}
+                  {!collapsed && badge > 0 && <span className="num min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--accent)] text-white text-[10.5px] font-semibold grid place-items-center">{badge}</span>}
+                  {collapsed && badge > 0 && <span className="absolute top-1 right-1.5 size-2 rounded-full bg-[var(--accent)]" />}
+                </Link>
+              )}
+
+              {hasChildren && isOpen && !collapsed && (
                 <div className="ml-5 pl-2.5 border-l border-[var(--side-line)] mt-0.5 mb-1.5 flex flex-col gap-0.5">
                   {h.pages.map((sub) => {
                     const subOn = sub.href === active;
                     return (
-                      <Link key={sub.href} to={sub.href as never} aria-current={subOn ? 'page' : undefined}
-                        className={cn('flex items-center gap-2 h-7 touch:h-9 px-2 rounded-md text-[12.5px] transition-colors', subOn ? 'bg-white/10 text-[var(--side-text-strong)] font-semibold' : 'text-[var(--side-text-dim)] hover:text-[var(--side-text-strong)] hover:bg-[var(--side-hover)]')}>
+                      <Link
+                        key={sub.href}
+                        to={sub.href as never}
+                        aria-current={subOn ? 'page' : undefined}
+                        className={cn(
+                          'flex items-center gap-2 h-7 touch:h-9 px-2 rounded-md text-[12.5px] transition-colors',
+                          subOn ? 'bg-white/10 text-[var(--side-text-strong)] font-semibold' : 'text-[var(--side-text-dim)] hover:text-[var(--side-text-strong)] hover:bg-[var(--side-hover)]'
+                        )}
+                      >
                         <span className={cn('size-1.5 rounded-full shrink-0', subOn ? 'bg-[var(--color-amber-400)]' : 'bg-white/20')} />
                         <span className="truncate">{sub.label}</span>
                       </Link>
@@ -183,16 +215,6 @@ function Sidebar({ scope, items, pathname, collapsed, canGroup, embedded, onClos
           );
         })}
       </nav>
-
-      {/* Person */}
-      <div className={cn('shrink-0 border-t border-[var(--side-line)]', collapsed ? 'p-2' : 'p-2.5')}>
-        <Menu items={userItems} placement="top" width={228} trigger={({ toggle }) => (
-          <button onClick={toggle} className={cn('w-full flex items-center gap-2.5 rounded-lg hover:bg-[var(--side-hover)] text-left', collapsed ? 'justify-center h-9' : 'px-1.5 h-11')} aria-label="Account">
-            <Avatar name={user?.name ?? '?'} seed={user?.avatarSeed} size={28} />
-            {!collapsed && <><span className="min-w-0 flex-1 leading-tight"><span className="block text-[13px] font-medium text-[var(--side-text-strong)] truncate">{user?.name}</span><span className="block text-[11px] text-[var(--side-text-dim)] truncate">{roleLabel(role)}</span></span><MoreHorizontal className="size-4 text-[var(--side-text-dim)] shrink-0" /></>}
-          </button>
-        )} />
-      </div>
     </aside>
   );
 }
@@ -203,17 +225,49 @@ function TitleBar({ scope, current, hubLabel, desktop, onMenu }: { scope: 'group
   const session = useStore((s) => s.session); const users = useStore((s) => s.users); const signOut = useStore((s) => s.signOut);
   const alerts = useStore((s) => s.alerts); const markAlertsRead = useStore((s) => s.markAlertsRead);
   const online = useStore((s) => s.online); const pending = useStore(pendingCount);
-  const prefs = usePrefs();
+  const prefs = usePrefs(); const pwa = usePwa();
   const [alertsOpen, setAlertsOpen] = useState(false);
   const bell = useRef<HTMLDivElement>(null);
   const user = users.find((u) => u.id === session?.userId);
+  const role: Role = session?.role ?? 'supervisor';
   const unread = alerts.filter((a) => !a.read).length;
+
+  // Live EAT Digital Clock
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Fullscreen Handler
+  const [isFullscreen, setIsFullscreen] = useState(() => typeof document !== 'undefined' && !!document.fullscreenElement);
+  useEffect(() => {
+    const onFs = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFs);
+    return () => document.removeEventListener('fullscreenchange', onFs);
+  }, []);
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
   useEffect(() => { if (!alertsOpen) return; const away = (e: MouseEvent) => { if (!bell.current?.contains(e.target as Node)) setAlertsOpen(false); }; window.addEventListener('mousedown', away); return () => window.removeEventListener('mousedown', away); }, [alertsOpen]);
   const key: SiteCode | 'group' = scope === 'group' ? 'group' : site.id;
 
+  const userItems: MenuItem[] = [
+    { label: 'Switch Portal / Site', icon: LayoutGrid, onSelect: () => nav({ to: '/portals' as never }) },
+    { label: prefs.theme === 'dark' ? 'Light Theme' : 'Dark Theme', icon: prefs.theme === 'dark' ? Sun : Moon, onSelect: prefs.toggleTheme, divider: true },
+    { label: prefs.density === 'compact' ? 'Touch Layout' : 'Compact Layout', icon: MonitorSmartphone, onSelect: prefs.toggleDensity },
+    { label: 'Keyboard Shortcuts', icon: Keyboard, onSelect: () => prefs.setHelp(true) },
+    ...(pwa.canInstall ? [{ label: 'Install App', icon: Download, onSelect: () => void pwa.install() }] : []),
+    { label: 'Sign Out', icon: LogOut, divider: true, onSelect: () => { signOut(); nav({ to: '/' }); } },
+  ];
+
   return (
-    <header className="app-drag shrink-0 h-[var(--titlebar-h)] bg-[var(--chrome)] border-b border-[var(--line)] flex items-center gap-2 pl-3 no-print"
-      style={{ paddingRight: 'max(10px, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) + 10px))' }}>
+    <header className="app-drag shrink-0 h-[var(--titlebar-h)] bg-[var(--chrome)] border-b border-[var(--line)] flex items-center gap-2 pl-3 pr-3 no-print">
       <IconButton icon={desktop ? PanelLeft : MenuIcon} label={desktop ? 'Toggle sidebar' : 'Menu'} onClick={onMenu} className="app-no-drag" />
       <nav className="app-no-drag flex items-center gap-2 min-w-0 t-base pl-1" aria-label="Breadcrumb">
         <div className="flex items-center gap-1.5">
@@ -230,17 +284,48 @@ function TitleBar({ scope, current, hubLabel, desktop, onMenu }: { scope: 'group
           </>
         )}
       </nav>
+
       <div className="flex-1 min-w-2" />
+
       {wide ? (
-        <button onClick={() => prefs.setPalette(true)} className="app-no-drag ctl w-[min(360px,28vw)] px-3 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] hover:border-[var(--line-2)] hover:bg-[var(--surface)] flex items-center gap-2 text-[var(--text-3)] t-base transition-colors">
+        <button onClick={() => prefs.setPalette(true)} className="app-no-drag ctl w-[min(340px,24vw)] px-3 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] hover:border-[var(--line-2)] hover:bg-[var(--surface)] flex items-center gap-2 text-[var(--text-3)] t-base transition-colors">
           <Search className="size-3.5" /><span className="flex-1 text-left truncate text-xs">Search reports, looms, workers, trucks...</span>
         </button>
       ) : <IconButton icon={Search} label="Search" onClick={() => prefs.setPalette(true)} className="app-no-drag" />}
+
       <div className="flex-1 min-w-2 hidden lg:block" />
-      <div className={cn('app-no-drag hidden sm:flex items-center gap-1.5 px-2.5 h-7 rounded-full text-xs font-medium border', !online ? 'bg-[var(--bad-bg)] text-[var(--bad)] border-transparent' : pending ? 'bg-[var(--warn-bg)] text-[var(--warn)] border-transparent' : 'text-[var(--text-2)] bg-[var(--surface-2)] border-[var(--line)]')} title={online ? 'Local SQLite offline buffer synchronized' : 'Offline mode active. All inputs buffered locally.'}>
-        {!online ? <CloudOff className="size-3.5" /> : pending ? <RefreshCw className="size-3.5 animate-spin" /> : <span className="size-1.5 rounded-full bg-[var(--ok)]" />}
-        <span>{!online ? `Offline · ${pending} buffered` : pending ? `Syncing ${pending}` : 'Database Live'}</span>
+
+      {/* Live Digital Clock on Top Bar */}
+      <div className="hidden lg:flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs font-mono font-medium text-[var(--text-2)] bg-[var(--surface-2)] border border-[var(--line)] select-none">
+        <Clock className="size-3.5 text-[var(--text-3)]" />
+        <span>{time.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} EAT</span>
       </div>
+
+      {/* Fullscreen Button */}
+      <IconButton
+        icon={isFullscreen ? Minimize : Maximize}
+        label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+        onClick={toggleFullscreen}
+        className="app-no-drag hidden sm:grid"
+      />
+
+      {/* Standalone Theme Switcher on Top Bar */}
+      <IconButton
+        icon={prefs.theme === 'dark' ? Sun : Moon}
+        label={prefs.theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+        onClick={prefs.toggleTheme}
+        className="app-no-drag"
+      />
+
+      {/* Offline Status (Only shown when offline) */}
+      {!online && (
+        <div className="app-no-drag flex items-center gap-1.5 px-2.5 h-7 rounded-full text-xs font-medium bg-[var(--bad-bg)] text-[var(--bad)] border border-[var(--bad)]/20" title="Offline mode active. All inputs buffered locally.">
+          <CloudOff className="size-3.5" />
+          <span>Offline · {pending} buffered</span>
+        </div>
+      )}
+
+      {/* Alerts Bell */}
       <div ref={bell} className="relative app-no-drag">
         <IconButton icon={Bell} label="Alerts" active={alertsOpen} onClick={() => { setAlertsOpen((v) => !v); markAlertsRead(); }} />
         {unread > 0 && <span className="absolute top-0.5 right-0.5 min-w-[15px] h-[15px] px-1 rounded-full bg-[var(--bad)] text-white text-[10px] font-semibold grid place-items-center pointer-events-none anim-alarm">{unread}</span>}
@@ -252,6 +337,20 @@ function TitleBar({ scope, current, hubLabel, desktop, onMenu }: { scope: 'group
             ))}
           </div>
         )}
+      </div>
+
+      {/* User Profile & Account Menu on Top Right Bar */}
+      <div className="app-no-drag">
+        <Menu items={userItems} align="right" placement="bottom" width={220} trigger={({ toggle }) => (
+          <button onClick={toggle} className="flex items-center gap-2 pl-1.5 pr-2.5 h-8 rounded-lg hover:bg-[var(--surface-2)] border border-[var(--line)] text-left transition-colors" aria-label="Account">
+            <Avatar name={user?.name ?? '?'} seed={user?.avatarSeed} size={24} />
+            <div className="hidden md:block leading-none text-left">
+              <span className="block text-xs font-semibold text-[var(--text)] truncate max-w-[120px]">{user?.name}</span>
+              <span className="block text-[10px] text-[var(--text-3)] truncate">{roleLabel(role)}</span>
+            </div>
+            <ChevronDown className="size-3 text-[var(--text-4)] hidden md:block" />
+          </button>
+        )} />
       </div>
     </header>
   );
