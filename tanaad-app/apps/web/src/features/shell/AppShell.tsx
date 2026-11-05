@@ -213,32 +213,41 @@ function TitleBar({ scope, current, hubLabel, desktop, onMenu }: { scope: 'group
   const key: SiteCode | 'group' = scope === 'group' ? 'group' : site.id;
 
   return (
-    <header className="app-drag shrink-0 h-[var(--titlebar-h)] bg-[var(--chrome)] border-b border-[var(--line)] flex items-center gap-1.5 pl-2 no-print"
+    <header className="app-drag shrink-0 h-[var(--titlebar-h)] bg-[var(--chrome)] border-b border-[var(--line)] flex items-center gap-2 pl-3 no-print"
       style={{ paddingRight: 'max(10px, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) + 10px))' }}>
       <IconButton icon={desktop ? PanelLeft : MenuIcon} label={desktop ? 'Toggle sidebar' : 'Menu'} onClick={onMenu} className="app-no-drag" />
-      <nav className="app-no-drag flex items-center gap-1.5 min-w-0 t-base pl-1" aria-label="Breadcrumb">
-        <span className="size-2 rounded-[3px] shrink-0" style={{ background: SITE_COLOR[key] }} />
-        <span className={cn('whitespace-nowrap', current ? 'text-[var(--text-3)] hidden md:inline' : 'font-semibold')}>{scope === 'group' ? 'Group HQ' : site.name}</span>
-        {current && desktop && hubLabel && <><ChevronRight className="size-3.5 text-[var(--text-4)] shrink-0" /><span className="text-[var(--text-3)] whitespace-nowrap">{hubLabel}</span></>}
-        {current && <><ChevronRight className="size-3.5 text-[var(--text-4)] shrink-0 hidden md:block" /><span className="font-semibold whitespace-nowrap">{current.label}</span></>}
+      <nav className="app-no-drag flex items-center gap-2 min-w-0 t-base pl-1" aria-label="Breadcrumb">
+        <div className="flex items-center gap-1.5">
+          <span className="font-bold text-xs tracking-wider uppercase text-slate-800">TANAAD ERP</span>
+          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">v4.0</span>
+        </div>
+        <ChevronRight className="size-3 text-slate-400 shrink-0" />
+        <span className="size-2 rounded-full shrink-0" style={{ background: SITE_COLOR[key] }} />
+        <span className="font-semibold text-slate-900 text-xs sm:text-sm whitespace-nowrap">{scope === 'group' ? 'Group Operations HQ' : site.name}</span>
+        {current && desktop && (
+          <>
+            <ChevronRight className="size-3 text-slate-400 shrink-0" />
+            <span className="font-semibold text-slate-700 text-xs sm:text-sm whitespace-nowrap">{current.label}</span>
+          </>
+        )}
       </nav>
       <div className="flex-1 min-w-2" />
       {wide ? (
         <button onClick={() => prefs.setPalette(true)} className="app-no-drag ctl w-[min(360px,28vw)] px-3 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] hover:border-[var(--line-2)] hover:bg-[var(--surface)] flex items-center gap-2 text-[var(--text-3)] t-base transition-colors">
-          <Search className="size-3.5" /><span className="flex-1 text-left truncate">Search pages, workers, or orders…</span>
+          <Search className="size-3.5" /><span className="flex-1 text-left truncate text-xs">Search reports, looms, workers, trucks...</span>
         </button>
       ) : <IconButton icon={Search} label="Search" onClick={() => prefs.setPalette(true)} className="app-no-drag" />}
       <div className="flex-1 min-w-2 hidden lg:block" />
-      <div className={cn('app-no-drag hidden sm:flex items-center gap-1.5 px-2.5 h-7 rounded-full t-sm font-medium border', !online ? 'bg-[var(--bad-bg)] text-[var(--bad)] border-transparent' : pending ? 'bg-[var(--warn-bg)] text-[var(--warn)] border-transparent' : 'text-[var(--text-2)] border-[var(--line)]')} title={online ? 'All changes are saved on this device and synced' : 'Working offline. Changes are saved on this device and will sync.'}>
-        {!online ? <CloudOff className="size-3.5" /> : pending ? <RefreshCw className="size-3.5 animate-spin" /> : <span className="size-1.5 rounded-full bg-[var(--ok)] anim-live" />}
-        <span>{!online ? `Offline · ${pending} saved locally` : pending ? `Syncing ${pending}` : 'Saved & Live'}</span>
+      <div className={cn('app-no-drag hidden sm:flex items-center gap-1.5 px-2.5 h-7 rounded-full text-xs font-medium border', !online ? 'bg-rose-50 text-rose-700 border-rose-200' : pending ? 'bg-amber-50 text-amber-700 border-amber-200' : 'text-slate-600 bg-slate-50 border-slate-200')} title={online ? 'Local SQLite offline buffer synchronized' : 'Offline mode active. All inputs buffered locally.'}>
+        {!online ? <CloudOff className="size-3.5" /> : pending ? <RefreshCw className="size-3.5 animate-spin" /> : <span className="size-1.5 rounded-full bg-emerald-600" />}
+        <span>{!online ? `Offline · ${pending} buffered` : pending ? `Syncing ${pending}` : 'Database Live'}</span>
       </div>
       <div ref={bell} className="relative app-no-drag">
         <IconButton icon={Bell} label="Alerts" active={alertsOpen} onClick={() => { setAlertsOpen((v) => !v); markAlertsRead(); }} />
         {unread > 0 && <span className="absolute top-0.5 right-0.5 min-w-[15px] h-[15px] px-1 rounded-full bg-[var(--bad)] text-white text-[10px] font-semibold grid place-items-center pointer-events-none anim-alarm">{unread}</span>}
         {alertsOpen && (
           <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-[360px] max-w-[calc(100vw-16px)] bg-[var(--surface)] border border-[var(--line-2)] rounded-lg shadow-[var(--shadow-pop)] anim-pop overflow-hidden">
-            <div className="px-3 h-10 flex items-center justify-between border-b border-[var(--line)]"><span className="t-base font-semibold">Alerts</span><span className="t-xs text-[var(--text-3)]">Critical ones also reach the CEOs on WhatsApp</span></div>
+            <div className="px-3 h-10 flex items-center justify-between border-b border-[var(--line)]"><span className="t-base font-semibold">Alerts</span><span className="t-xs text-[var(--text-3)]">Audit and exception stream</span></div>
             {alerts.length === 0 ? <div className="px-3 py-7 text-center t-sm text-[var(--text-3)]">No alerts.</div> : alerts.slice(0, 8).map((a) => (
               <div key={a.id} className="px-3 py-2 border-b border-[var(--line)] last:border-b-0 flex gap-2.5"><span className="mt-1.5 size-2 rounded-full bg-[var(--bad)] shrink-0" /><div className="min-w-0"><div className="flex items-baseline justify-between gap-2"><span className="t-base font-medium">{a.title}</span><span className="t-xs text-[var(--text-3)] shrink-0">{fmtDateTime(a.at)}</span></div><div className="t-sm text-[var(--text-2)]">{a.detail}</div></div></div>
             ))}
@@ -277,7 +286,7 @@ function StatusBar({ scope }: { scope: 'group' | 'site' }) {
       <Seg onClick={() => s.setOnline(!s.online)} title="Click to simulate losing or regaining the connection">{s.online ? <Cloud className="size-3" /> : <CloudOff className="size-3" />}{s.online ? (pending ? `${pending} syncing` : 'Synced') : `Offline · ${pending} queued on this device`}</Seg>
       <Seg onClick={prefs.toggleDensity} title="Switch between compact (keyboard and mouse) and touch layout"><MonitorSmartphone className="size-3" />{prefs.density === 'compact' ? 'Compact' : 'Touch'}</Seg>
       <Seg onClick={() => prefs.setHelp(true)}><Keyboard className="size-3" />Shortcuts <Kbd keys="?" /></Seg>
-      <Seg title="Tanaad ERP v3.0">v3.0</Seg>
+      <Seg title="Tanaad ERP v4.0 Industrial Edition">v4.0 (Industrial)</Seg>
     </footer>
   );
 }

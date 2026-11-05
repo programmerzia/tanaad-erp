@@ -215,7 +215,7 @@
 .anim-left { animation: slide-left .16s ease-out both }
 .anim-print { animation: print-out .9s cubic-bezier(.2,.7,.2,1) both }
 .anim-alarm { animation: pulse-ring 1.2s ease-out infinite }
-.anim-live { animation: live 1.8s ease-in-out infinite }
+.anim-live { opacity: 1 }
 
 @media print {
   body { overflow: visible; background: #fff; }
