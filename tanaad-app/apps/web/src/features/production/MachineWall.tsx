@@ -31,7 +31,10 @@ function Tile({ t, cfg, yieldFloor, readOnly, dim, selected, tabbable, wide, cau
       style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${st.color} ${state === 'down' ? 14 : trouble ? 9 : 5}%, var(--surface)), var(--surface) 78%)` }}>
       <span className="absolute left-0 inset-y-0 w-[3px]" style={{ background: st.color }} />
       <div className="flex items-center justify-between gap-2">
-        <span className="t-sm font-semibold whitespace-nowrap">{m.code}</span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="t-sm font-semibold whitespace-nowrap">{m.code}</span>
+          {m.make && <span className="text-[10px] font-mono text-[var(--text-3)] truncate hidden sm:inline">{m.make}</span>}
+        </div>
         <span className={cn('inline-flex items-center gap-1 t-xs font-medium whitespace-nowrap', trouble ? '' : 'text-[var(--text-2)]')} style={trouble ? { color: st.color } : undefined}>
           {state === 'down' ? <Wrench className="size-3" /> : <span className={cn('size-1.5 rounded-full', state === 'not_logged' && 'anim-live')} style={{ background: st.color }} />}{st.label}
         </span>

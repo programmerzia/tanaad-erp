@@ -24,7 +24,15 @@ export const recycling: Site = {
     spares: ['Screens', 'Blades', 'Bearings', 'Heater bands', 'Pump parts'],
     utilities: ['Electricity', 'Water', 'Generator fuel'],
   },
-  downtimeReasons: ['Power', 'Mechanical', 'No feedstock', 'Water supply', 'Operator absent', 'Other'],
+  downtimeReasons: [
+    'Umeme Grid Outage / Gen Switch',
+    'Granulator Blade Dullness / Jam',
+    'Wash Line Water Pump Clog',
+    'Screen Pack Mesh Contamination',
+    'Melt Pelletizer Strand Break',
+    'Collector Feedstock Shortage',
+    'Other',
+  ],
   thresholds: { gateTolerancePct: 2, massGapPct: 12, cashVariance: 20_000, benchmarkPct: 80 }, // wash and melt loss of 8–12% is the process norm; to be confirmed
   deliveryNoteSeriesStart: 1,
   toBeConfirmed: 'Intake deduction rule, process stages and sack size to be confirmed with the plant.',

@@ -68,6 +68,8 @@ export interface Machine {
   kind: string;      // loom | extruder | mixer | line | converter | crusher
   stageCode: string;
   status: 'active' | 'arriving' | 'down' | 'retired';
+  make?: string;     // e.g. "Starlinger", "Hengli", "Lushan", "EREMA"
+  model?: string;    // e.g. "SL-6 Circular Loom (120 rpm)", "65mm Mono Extruder"
   commissioned?: string;
   /** Rated capacity in kg per day, where the machine has one (recycling lines). */
   capacityKgPerDay?: number;
@@ -283,6 +285,9 @@ export interface Dispatch {
   scannedLabelIds: string[];
   expectedKg: number;
   gateKg?: number;
+  grossKg?: number;
+  tareKg?: number;
+  sealNo?: string;
   variancePct?: number;
   gateStatus: GateStatus;
   overrideBy?: string;
@@ -304,7 +309,16 @@ export interface ProofOfDelivery {
   hasSignature: boolean;
 }
 
-export interface Invoice { id: string; orderId: string; number: string; total: number; currency: Currency; issuedAt: string }
+export interface Invoice {
+  id: string;
+  orderId: string;
+  number: string;
+  total: number;
+  currency: Currency;
+  issuedAt: string;
+  efrisFdn?: string;
+  efrisVerificationCode?: string;
+}
 export interface Payment { id: string; clientId: string; invoiceId?: string; amount: number; currency: Currency; method: string; reference: string; at: string }
 
 export interface Part {

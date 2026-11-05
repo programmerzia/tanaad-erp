@@ -28,7 +28,15 @@ export const mats: Site = {
     transport: ['Boda', 'Lorry hire', 'Fuel'],
     utilities: ['Electricity', 'Water', 'Generator fuel'],
   },
-  downtimeReasons: ['Power', 'Mechanical', 'No string', 'Operator absent', 'Changeover', 'Other'],
+  downtimeReasons: [
+    'Umeme Grid Outage / Gen Switch',
+    'Warp Bobbin Creel Change',
+    'Warp / Weft Thread Snap',
+    'Heater Band Element Burnout',
+    'Mechanical Loom Jam',
+    'Operator Lunch / Roll-Call',
+    'Other',
+  ],
   thresholds: { gateTolerancePct: 2, massGapPct: 2, cashVariance: 20_000, benchmarkPct: 80 },
   deliveryNoteSeriesStart: 1,
 };

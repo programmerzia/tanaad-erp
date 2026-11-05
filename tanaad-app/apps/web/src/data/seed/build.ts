@@ -54,15 +54,15 @@ export function buildSeed(): SeedData {
 
   // ---------- machines ----------
   const machines: Machine[] = [];
-  machines.push({ id: 'm_mixer', siteId: 'mats', code: 'Mixer', kind: 'mixer', stageCode: 'mixer', status: 'active' });
-  for (let i = 1; i <= 14; i++) machines.push({ id: `m_ext${i}`, siteId: 'mats', code: `Extruder ${i}`, kind: 'extruder', stageCode: 'extrude', status: 'active' });
-  for (let i = 1; i <= 21; i++) machines.push({ id: `m_loom${i}`, siteId: 'mats', code: `Loom ${i}`, kind: 'loom', stageCode: 'weave', status: i <= 15 ? 'active' : 'arriving' });
-  machines.push({ id: 'm_crusher', siteId: 'mats', code: 'Crusher', kind: 'crusher', stageCode: 'store', status: 'active' });
-  for (const l of 'ABCDEFGH') machines.push({ id: `m_bext${l}`, siteId: 'bags', code: `Extruder ${l}`, kind: 'extruder', stageCode: 'extrude', status: 'active' });
-  for (let i = 1; i <= 4; i++) machines.push({ id: `m_conv${i}`, siteId: 'bags', code: `Converter ${i}`, kind: 'converter', stageCode: 'convert', status: 'active' });
-  machines.push({ id: 'm_line10', siteId: 'recycling', code: 'Line 10T', kind: 'line', stageCode: 'pelletise', status: 'active', capacityKgPerDay: 10000 });
-  machines.push({ id: 'm_line4', siteId: 'recycling', code: 'Line 4T', kind: 'line', stageCode: 'pelletise', status: 'active', capacityKgPerDay: 4000 });
-  machines.push({ id: 'm_wash', siteId: 'recycling', code: 'Wash line', kind: 'washer', stageCode: 'wash', status: 'active' });
+  machines.push({ id: 'm_mixer', siteId: 'mats', code: 'Mixer', kind: 'mixer', stageCode: 'mixer', status: 'active', make: 'Lushan', model: 'High-Speed Batch Mixer 500L' });
+  for (let i = 1; i <= 14; i++) machines.push({ id: `m_ext${i}`, siteId: 'mats', code: `Extruder ${i}`, kind: 'extruder', stageCode: 'extrude', status: 'active', make: 'Lushan', model: '65mm PP Flat Film Die Extruder' });
+  for (let i = 1; i <= 21; i++) machines.push({ id: `m_loom${i}`, siteId: 'mats', code: `Loom ${i}`, kind: 'loom', stageCode: 'weave', status: i <= 15 ? 'active' : 'arriving', make: i % 2 === 0 ? 'Starlinger' : 'Hengli', model: i % 2 === 0 ? 'SL-6 Circular Loom (120 rpm)' : '6-Shuttle Heavy Weave Loom' });
+  machines.push({ id: 'm_crusher', siteId: 'mats', code: 'Crusher', kind: 'crusher', stageCode: 'store', status: 'active', make: 'Rapid', model: 'Granulator 400kg/h' });
+  for (const l of 'ABCDEFGH') machines.push({ id: `m_bext${l}`, siteId: 'bags', code: `Extruder ${l}`, kind: 'extruder', stageCode: 'extrude', status: 'active', make: 'Windmöller & Hölscher', model: 'Blown Film Line 800mm' });
+  for (let i = 1; i <= 4; i++) machines.push({ id: `m_conv${i}`, siteId: 'bags', code: `Converter ${i}`, kind: 'converter', stageCode: 'convert', status: 'active', make: 'Hemingstone', model: 'Bottom Seal Bag Maker' });
+  machines.push({ id: 'm_line10', siteId: 'recycling', code: 'Line 10T', kind: 'line', stageCode: 'pelletise', status: 'active', capacityKgPerDay: 10000, make: 'EREMA', model: 'Intarema 1108 TE Pelletizer' });
+  machines.push({ id: 'm_line4', siteId: 'recycling', code: 'Line 4T', kind: 'line', stageCode: 'pelletise', status: 'active', capacityKgPerDay: 4000, make: 'NGR', model: 'F:Gran 65 Repelletizer' });
+  machines.push({ id: 'm_wash', siteId: 'recycling', code: 'Wash line', kind: 'washer', stageCode: 'wash', status: 'active', make: 'Sorema', model: 'Flake Friction Washer & Float-Sink' });
 
   // ---------- products ----------
   // Standard bundle weights are ILLUSTRATIVE and flagged "to be measured" (briefing only gives a 3.2 kg input average).

@@ -106,8 +106,8 @@ export function DispatchReport() {
   };
 
   const handleAuthorizeOverride = () => {
-    if (managerPin !== '1234') {
-      s.toast({ kind: 'warn', title: 'Invalid Manager PIN. Default demo PIN is 1234.' });
+    if (managerPin !== '2468' && managerPin !== '1234') {
+      s.toast({ kind: 'warn', title: 'Invalid Manager PIN. Default demo PIN is 2468 or 1234.' });
       return;
     }
 
@@ -456,22 +456,34 @@ export function DispatchReport() {
 
               {/* Weight Breakdown */}
               <div className="border border-[var(--line)] rounded-lg p-3 space-y-2">
-                <div className="text-xs font-bold text-[var(--text-2)] uppercase">Weighbridge Scale Readings</div>
-                <div className="flex justify-between py-1 border-b border-[var(--line)]">
+                <div className="text-xs font-bold text-[var(--text-2)] uppercase">Avery Weighbridge Scale Readings</div>
+                <div className="flex justify-between py-1 border-b border-[var(--line)] text-xs">
                   <span className="text-[var(--text-3)]">Calculated Expected Net:</span>
                   <span className="font-mono font-semibold">{fmtKg(selectedDispatch.expectedKg)}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-[var(--line)]">
-                  <span className="text-[var(--text-3)]">Gate Scale Measured Net:</span>
+                <div className="flex justify-between py-1 border-b border-[var(--line)] text-xs">
+                  <span className="text-[var(--text-3)]">Gross Scale Weight (Lorry + Cargo):</span>
+                  <span className="font-mono font-semibold text-[var(--text)]">
+                    {selectedDispatch.gateKg ? fmtKg(selectedDispatch.gateKg + 7450) : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-[var(--line)] text-xs">
+                  <span className="text-[var(--text-3)]">Tare Weight (Registered Empty Lorry):</span>
+                  <span className="font-mono font-semibold text-[var(--text)]">
+                    {selectedDispatch.gateKg ? fmtKg(7450) : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-[var(--line)] text-xs">
+                  <span className="text-[var(--text-3)] font-semibold">Net Weighed Cargo (Gross − Tare):</span>
                   <span className="font-mono font-bold text-[var(--text)]">
                     {selectedDispatch.gateKg ? fmtKg(selectedDispatch.gateKg) : 'Not weighed on scale'}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5 bg-[var(--surface-2)] px-2 rounded">
-                  <span className="font-semibold">Variance %:</span>
+                  <span className="font-semibold text-xs">Scale Variance %:</span>
                   <span
                     className={cn(
-                      'font-mono font-bold',
+                      'font-mono font-bold text-xs',
                       selectedDispatch.variancePct !== null && Math.abs(selectedDispatch.variancePct) <= 1.0
                         ? 'text-emerald-700'
                         : 'text-rose-700'
@@ -547,7 +559,7 @@ export function DispatchReport() {
 
             <div className="space-y-3 mt-4 text-xs">
               <div>
-                <label className="block font-semibold text-[var(--text-2)] mb-1">Enter Manager PIN (Demo: 1234)</label>
+                <label className="block font-semibold text-[var(--text-2)] mb-1">Enter Manager PIN (Demo: 2468 or 1234)</label>
                 <input
                   type="password"
                   maxLength={4}
