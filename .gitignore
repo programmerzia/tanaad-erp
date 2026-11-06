@@ -7,18 +7,6 @@ coverage
 *.log
 .DS_Store
 
-# Documentation, proposals, decks, and demo scripts stay local.
+# Documentation stays on this machine.
 docs/
 **/docs/
-*.pptx
-*.pdf
-TANAAD_*.md
-DEMO_SCRIPT.md
-ONE_PAGE_PHONE_SCRIPT.*
-PRESENTATION_CHEAT_SHEET.html
-V3_DEMO_PRESENTATION_GUIDE.md
-cheat-sheet.html
-script.html
-script.txt
-generate_pptx.py
-make_deck.py
