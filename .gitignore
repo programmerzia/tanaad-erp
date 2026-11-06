@@ -7,13 +7,18 @@ coverage
 *.log
 .DS_Store
 
-# Documentation is kept out of the repository for now (all docs folders, at any level).
+# Documentation, proposals, decks, and demo scripts stay local.
 docs/
-
-# Client-confidential material. The remote is a PUBLIC repository, so these stay local.
-# Remove a line to track that file once the repository is private or the client has agreed.
-/docs/Tanaad System — R&D Briefing.pdf
-/docs/pdd/
-/TANAAD_SOLUTION_PROPOSAL.md
-/TANAAD_SYSTEM_MODULES_AND_FEATURES.md
-/TANAAD_DEMO_BUILD_BRIEF.md
+**/docs/
+*.pptx
+*.pdf
+TANAAD_*.md
+DEMO_SCRIPT.md
+ONE_PAGE_PHONE_SCRIPT.*
+PRESENTATION_CHEAT_SHEET.html
+V3_DEMO_PRESENTATION_GUIDE.md
+cheat-sheet.html
+script.html
+script.txt
+generate_pptx.py
+make_deck.py
